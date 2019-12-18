@@ -11,13 +11,15 @@ for a in all_links:
     if href.startswith('lib.lib'):
         url = BASE_URL + href
         print("Downloading " + url)
-        URLopener().retrieve(url, href)
+        os.system("wget " + url)
 
 print("Running gunzip ...")
 os.system("rm flibusta.db")
 os.system("gunzip *.gz")
-os.system("cat *.sql > sqldump.sql")
+os.system("cat lib*.sql > sqldump.sql")
 print("Converting to SQLite3...")
 os.system("/usr/bin/awk -f mysql2sqlite sqldump.sql | sqlite3 flibusta.db")
+print("Applying SQL scripts...")
+os.system("sqlite3 flibusta.db < SequenceAuthor.sql")
 print("All done")
-os.system("rm *.sql")
+os.system("rm lib*.sql sqldump.sql")
