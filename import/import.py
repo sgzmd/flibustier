@@ -1,3 +1,4 @@
+import os
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from urllib.request import URLopener
@@ -12,3 +13,11 @@ for a in all_links:
         print("Downloading " + url)
         URLopener().retrieve(url, href)
 
+print("Running gunzip ...")
+os.system("rm flibusta.db")
+os.system("gunzip *.gz")
+os.system("cat *.sql > sqldump.sql")
+print("Converting to SQLite3...")
+os.system("/usr/bin/awk -f mysql2sqlite sqldump.sql | sqlite3 flibusta.db")
+print("All done")
+os.system("rm *.sql")
