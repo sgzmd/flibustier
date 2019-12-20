@@ -26,7 +26,7 @@ class SequenceService {
             rs = statement.executeQuery("select SeqName, Authors, SeqId from sequence_fts LIMIT $limit OFFSET $offset")
         } else {
             rs = statement.executeQuery("select SeqName, Authors, SeqId from sequence_fts " +
-                    "where sequence_fts match '$q' LIMIT $limit OFFSET $offset")
+                    "where sequence_fts match '$q*' LIMIT $limit OFFSET $offset")
         }
 
         val sequences = mutableListOf<Series>()
@@ -58,12 +58,13 @@ class SequenceService {
             rs = statement.executeQuery("select COUNT(1) as Cnt from sequence_fts")
         } else {
             var q = rewriteQuery(query)
-            rs = statement.executeQuery("select COUNT(1) as Cnt from sequence_fts " +
-                    "where sequence_fts match '$q'")
+            rs = statement.executeQuery("select COUNT(1) as Cnt from sequence_fts where sequence_fts match '$q*'")
         }
 
         if (rs.next()) {
-            return rs.getInt("Cnt")
+            val count = rs.getInt("Cnt")
+            logger.info("Returning count for $query as $count")
+            return count
         } else {
             return 0;
         }
