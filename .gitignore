@@ -24,3 +24,4 @@ hs_err_pid*
 sqls/
 tmp/
 data/
+sqldump.sql
