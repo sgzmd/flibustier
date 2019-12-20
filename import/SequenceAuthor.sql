@@ -16,7 +16,7 @@ group by 1,2,3)
 GROUP BY 1,2;
 
 drop table if exists  sequence_fts;
-create virtual table sequence_fts using fts5(seqName, authors);
-insert into sequence_fts select SeqName, Authors from SequenceAuthor;
+create virtual table sequence_fts using fts5(seqName, authors, seqId);
+insert into sequence_fts select SeqName, Authors, SeqId from SequenceAuthor;
 
 select * from sequence_fts where sequence_fts match "унесенный";

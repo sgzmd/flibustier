@@ -1,6 +1,5 @@
 package com.sgzmd.flibustier.backend
 
-import com.vaadin.flow.data.provider.DataProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.sql.Connection
