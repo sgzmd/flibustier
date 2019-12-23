@@ -25,3 +25,4 @@ sqls/
 tmp/
 data/
 sqldump.sql
+config/

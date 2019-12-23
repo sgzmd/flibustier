@@ -1,10 +1,19 @@
 package com.sgzmd.flibustier;
 
+import com.okta.spring.boot.oauth.Okta;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import java.security.Principal;
 
 
 /**
@@ -16,5 +25,10 @@ import com.vaadin.flow.theme.lumo.Lumo;
 public class MainView extends AppLayout {
 
     public MainView() {
+    }
+
+    @GetMapping("/")
+    public String getMessageOfTheDay(@AuthenticationPrincipal OidcUser user) {
+        return user.getName() + ", this message of the day is boring";
     }
 }
