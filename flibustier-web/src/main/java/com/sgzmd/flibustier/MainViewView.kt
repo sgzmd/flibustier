@@ -1,4 +1,4 @@
-package com.sgzmd.flibustier.views.mainview
+package com.sgzmd.flibustier.views
 
 import com.sgzmd.flibustier.MainView
 import com.sgzmd.flibustier.backend.SequenceService
