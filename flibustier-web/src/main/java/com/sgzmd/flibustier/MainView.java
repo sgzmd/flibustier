@@ -26,9 +26,4 @@ public class MainView extends AppLayout {
 
     public MainView() {
     }
-
-    @GetMapping("/")
-    public String getMessageOfTheDay(@AuthenticationPrincipal OidcUser user) {
-        return user.getName() + ", this message of the day is boring";
-    }
 }
