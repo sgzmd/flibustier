@@ -20,20 +20,6 @@ public class HomeController {
 
     ObjectMapper mapper = new ObjectMapper();
 
-//    @GetMapping("/securedPage")
-//    public ModelAndView home(@AuthenticationPrincipal OidcUser user) throws JsonProcessingException {
-//        ModelAndView mav = new ModelAndView();
-//        mav.addObject("user", user.getUserInfo().getEmail());
-//        mav.addObject("idToken", user.getIdToken().getTokenValue());
-//        mav.addObject(
-//                "claims",
-//                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(user.getClaims())
-//        );
-//        mav.setViewName("securedPage");
-//        return mav;
-//    }
-
-
     @RequestMapping("/securedPage")
     public String securedPage(Model model,
                               @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient authorizedClient,
@@ -42,10 +28,5 @@ public class HomeController {
         model.addAttribute("clientName", authorizedClient.getClientRegistration().getClientName());
         model.addAttribute("userAttributes", oauth2User.getAttributes());
         return "securedPage";
-    }
-
-    @RequestMapping("/")
-    public String index(Model model, Principal principal) {
-        return "index";
     }
 }
