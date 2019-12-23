@@ -151,24 +151,24 @@
             <scope>runtime</scope>
         </dependency>
 
-        <dependency>
-            <groupId>com.okta.spring</groupId>
-            <artifactId>okta-spring-boot-starter</artifactId>
-            <version>1.2.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.okta.spring</groupId>-->
+<!--            <artifactId>okta-spring-boot-starter</artifactId>-->
+<!--            <version>1.2.1</version>-->
+<!--        </dependency>-->
 
-        <dependency>
-            <groupId>com.okta.jwt</groupId>
-            <artifactId>okta-jwt-verifier</artifactId>
-            <version>0.4.0</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.okta.jwt</groupId>-->
+<!--            <artifactId>okta-jwt-verifier</artifactId>-->
+<!--            <version>0.4.0</version>-->
+<!--        </dependency>-->
 
-        <dependency>
-            <groupId>com.okta.jwt</groupId>
-            <artifactId>okta-jwt-verifier-impl</artifactId>
-            <version>0.4.0</version>
-            <scope>runtime</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.okta.jwt</groupId>-->
+<!--            <artifactId>okta-jwt-verifier-impl</artifactId>-->
+<!--            <version>0.4.0</version>-->
+<!--            <scope>runtime</scope>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.springframework.security</groupId>
