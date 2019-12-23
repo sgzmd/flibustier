@@ -9,7 +9,7 @@ import java.sql.DriverManager
 open class AppConfig {
     @Bean
     open fun sqlConnection() : Connection {
-        val FILE_NAME = "/home/sgzmd/code/flibustier/data/flibusta.db"
+        val FILE_NAME = "../data/flibusta.db"
         val DB_URL = "jdbc:sqlite:" + FILE_NAME
         return DriverManager.getConnection(DB_URL)
     }
