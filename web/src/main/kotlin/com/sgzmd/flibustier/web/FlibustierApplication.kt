@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class WebApplication
+class FlibustierApplication
 
 fun main(args: Array<String>) {
-	runApplication<WebApplication>(*args)
+	runApplication<FlibustierApplication>(*args)
 }
