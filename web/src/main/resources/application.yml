@@ -5,4 +5,4 @@ spring:
 
 
 flibusta:
-  db: "jdbc:sqlite:../data/flibusta.db"
+  dburl: "jdbc:sqlite:../data/flibusta.db"

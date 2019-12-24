@@ -10,11 +10,12 @@ import java.sql.DriverManager
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
-class ConnectionProvider(@Value("flibusta.db") dbUrl: String) {
+class ConnectionProvider(@Value("\${flibusta.dburl}") dbUrl: String) {
     private var _connectionUrl = dbUrl
     private var _connection: Connection? = null
     var connection : Connection? = null
     @Synchronized get() {
+        Class.forName("org.sqlite.JDBC");
         if (_connection == null) {
             _connection = DriverManager.getConnection(_connectionUrl)
         }
