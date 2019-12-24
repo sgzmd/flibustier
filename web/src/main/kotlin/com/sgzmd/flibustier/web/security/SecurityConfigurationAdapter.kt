@@ -25,6 +25,13 @@ class SecurityConfigurationAdapter : WebSecurityConfigurerAdapter() {
 //                ?.and()
 //                ?.formLogin()?.loginPage("/login")?.permitAll()
         // nothing
+
+        http?.authorizeRequests()
+                ?.antMatchers("/")?.permitAll()
+                ?.antMatchers("/h2_console/**")?.permitAll();
+
+        http?.csrf()?.disable();
+        http?.headers()?.frameOptions()?.disable();
     }
 
     @Bean

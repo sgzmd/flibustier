@@ -16,8 +16,13 @@
     <tr th:each="sr : ${searchResults}">
         <td><span th:text="${sr.entryType}"/></td>
         <td><span th:text="${sr.name}"/></td>
+        <td><a th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">Track</a></td>
     </tr>
 </table>
+
+<div th:if="${tracked != null && !tracked.empty}">
+    <h2>Tracked entries</h2>
+</div>
 
 </body>
 </html>
