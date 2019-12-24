@@ -22,6 +22,9 @@
 
 <div th:if="${tracked != null && !tracked.empty}">
     <h2>Tracked entries</h2>
+    <div th:each="entry : ${tracked}">
+        <span th:text="${entry.entryName}"/>
+    </div>
 </div>
 
 </body>
