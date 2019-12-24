@@ -1,0 +1,24 @@
+spring:
+  devtools:
+    livereload:
+      port: 35730
+  datasource:
+    url: jdbc:h2:mem:test
+    driverClassName: org.h2.Driver
+    username: sa
+    password: sa
+  h2:
+    console:
+      enabled: true
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+
+# spring.jpa.hibernate.ddl-auto
+
+dev:
+  userId: 1
+
+flibusta:
+  dburl: "jdbc:sqlite::memory:"

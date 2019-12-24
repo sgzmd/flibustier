@@ -1,4 +1,3 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "libseqname" (
 	"SeqId"	integer NOT NULL PRIMARY KEY AUTOINCREMENT,
 	"SeqName"	varchar(254) NOT NULL DEFAULT '' UNIQUE
@@ -113,4 +112,3 @@ CREATE INDEX IF NOT EXISTS "idx_libbook_Year" ON "libbook" (
 CREATE INDEX IF NOT EXISTS "idx_libbook_Title" ON "libbook" (
 	"Title"
 );
-COMMIT;
