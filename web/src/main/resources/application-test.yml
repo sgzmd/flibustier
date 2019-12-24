@@ -21,4 +21,4 @@ dev:
   userId: 1
 
 flibusta:
-  dburl: "jdbc:sqlite::memory:"
+  dburl: "jdbc:sqlite:../testutils/flibusta-test.db"
