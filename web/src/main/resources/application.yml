@@ -10,8 +10,12 @@ spring:
   h2:
     console:
       enabled: true
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
 
-
+# spring.jpa.hibernate.ddl-auto
 
 dev:
   userId: 1

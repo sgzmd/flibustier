@@ -23,7 +23,7 @@
 <div th:if="${tracked != null && !tracked.empty}">
     <h2>Tracked entries</h2>
     <div th:each="entry : ${tracked}">
-        <span th:text="${entry.entryName}"/>
+        <span th:text="${entry.entryName}"/> (<span th:text="${entry.numEntries}"/> entries) <a th:href="@{/untrack(id=${entry.id})}">x</a>
     </div>
 </div>
 
