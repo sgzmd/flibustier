@@ -1,10 +1,8 @@
 package com.sgzmd.flibustier.web.controllers
 
-import com.sgzmd.flibustier.web.db.ConnectionProvider
 import com.sgzmd.flibustier.web.db.GlobalSearch
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.security.AuthenticationFacade
-import com.sgzmd.flibustier.web.security.UserIdProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
