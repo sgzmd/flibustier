@@ -11,11 +11,14 @@ import javax.persistence.Id
 import javax.persistence.Transient
 
 @Entity
-class TrackedEntry(val entryType: FoundEntryType?, val entryName: String?, val entryId: Int?, val numEntries: Int = 0) {
+class TrackedEntry(
+    val entryType: FoundEntryType?,
+    val entryName: String?,
+    val entryId: Int?,
+    val numEntries: Int = 0,
+    val userId: String = "") {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Long = 0
-
-    val userId = 1
 
     constructor() : this(null, null, null)
 

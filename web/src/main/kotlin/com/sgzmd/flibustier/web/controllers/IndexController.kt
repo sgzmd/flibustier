@@ -3,6 +3,7 @@ package com.sgzmd.flibustier.web.controllers
 import com.sgzmd.flibustier.web.db.ConnectionProvider
 import com.sgzmd.flibustier.web.db.GlobalSearch
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
+import com.sgzmd.flibustier.web.security.AuthenticationFacade
 import com.sgzmd.flibustier.web.security.UserIdProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
@@ -14,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam
 class IndexController() {
     @Autowired lateinit var globalSearch: GlobalSearch
     @Autowired lateinit var trackedEntryRepo: TrackedEntryRepository
-    @Autowired lateinit var userIdProvider: UserIdProvider
+    @Autowired lateinit var authFacade: AuthenticationFacade
+
 
     @GetMapping("/")
     fun index(
@@ -29,7 +31,7 @@ class IndexController() {
             }
         }
 
-        val userId = userIdProvider.userId
+        val userId = authFacade.getUserId()
         val trackedEntries = trackedEntryRepo.findByUserId(userId)
         model.addAttribute("tracked", trackedEntries)
 
