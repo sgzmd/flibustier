@@ -12,28 +12,32 @@ import org.springframework.security.crypto.password.PasswordEncoder
 @Configuration
 @EnableWebSecurity
 class SecurityConfigurationAdapter : WebSecurityConfigurerAdapter() {
-    override fun configure(auth: AuthenticationManagerBuilder?) {
-        auth?.inMemoryAuthentication()
-                ?.withUser("sgzmd")?.password(passwordEncoder()?.encode("pwd"))
-                ?.authorities("ROLE_USER")
-    }
-
     override fun configure(http: HttpSecurity?) {
-//        http
-//                ?.authorizeRequests()
-//                ?.anyRequest()?.authenticated()
-//                ?.and()
-//                ?.formLogin()?.loginPage("/login")?.permitAll()
-        // nothing
+        http
+            ?.csrf()?.disable()
+            ?.authorizeRequests()
+            ?.antMatchers("/info", "/login*")?.permitAll()
+            ?.anyRequest()?.authenticated()
+            ?.and()
+            ?.formLogin()
+            ?.loginPage("/login")
+            ?.permitAll()
+            ?.and()
+            ?.logout()
+            ?.logoutUrl("/perform_logout")
+            ?.deleteCookies("JSESSIONID")
+            ?.permitAll();
 
-        http?.authorizeRequests()
-                ?.antMatchers("/")?.permitAll()
-                ?.antMatchers("/h2_console/**")?.permitAll();
-
-        http?.csrf()?.disable();
         http?.headers()?.frameOptions()?.disable();
     }
 
+    @Throws(Exception::class)
+    override fun configure(auth: AuthenticationManagerBuilder) {
+        auth.inMemoryAuthentication()
+            .withUser("sgzmd").password(passwordEncoder()!!.encode("123")).roles("USER")
+            .and()
+            .withUser("admin").password(passwordEncoder()!!.encode("123456")).roles("ADMIN")
+    }
     @Bean
     fun passwordEncoder(): PasswordEncoder? {
         return BCryptPasswordEncoder()
