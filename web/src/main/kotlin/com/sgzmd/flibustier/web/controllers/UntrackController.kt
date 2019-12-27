@@ -14,7 +14,6 @@ class UntrackController(val repo: TrackedEntryRepository) {
     private val logger = LoggerFactory.getLogger(UntrackController::class.java)
     @Autowired lateinit var authFacade: AuthenticationFacade
 
-    // TODO: this technically allows to untrack any story if you guess the ID, so needs changing
     @GetMapping("/untrack")
     fun untrack(@RequestParam(name = "id", required = true) id: Long) : RedirectView {
         logger.info("Un-tracking Entry $id")
