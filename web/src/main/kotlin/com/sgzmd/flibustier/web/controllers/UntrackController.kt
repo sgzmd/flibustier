@@ -18,7 +18,7 @@ class UntrackController(val repo: TrackedEntryRepository) {
 
     // TODO: this technically allows to untrack any story if you guess the ID, so needs changing
     @GetMapping("/untrack")
-    fun track(@RequestParam(name = "id", required = true) id: Long) : RedirectView {
+    fun untrack(@RequestParam(name = "id", required = true) id: Long) : RedirectView {
         logger.info("Un-tracking Entry $id")
 
         repo.deleteByUserIdAndId(authFacade.getUserId(), id)

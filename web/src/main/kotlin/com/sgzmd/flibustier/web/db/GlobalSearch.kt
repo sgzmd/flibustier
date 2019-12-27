@@ -6,13 +6,13 @@ import org.springframework.stereotype.Component
 import java.sql.ResultSet
 
 @Component
-class GlobalSearch {
+class GlobalSearch : IGlobalSearch {
     @Autowired private lateinit var connectionProvider: ConnectionProvider
     private val logger = LoggerFactory.getLogger(GlobalSearch::class.java)
 
     data class SearchResult(val entryType: FoundEntryType, val name: String, val entryId: Int, val numEntities: Int)
 
-    fun search(searchTerm: String) : List<SearchResult> {
+    override fun search(searchTerm: String) : List<SearchResult> {
         logger.info("Searching for '$searchTerm'")
 
         var q = rewriteQuery(searchTerm)
@@ -52,4 +52,9 @@ class GlobalSearch {
         }
         return q
     }
+}
+
+@Component
+interface IGlobalSearch {
+    fun search(searchTerm: String) : List<GlobalSearch.SearchResult>
 }

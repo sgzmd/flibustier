@@ -1,6 +1,7 @@
 package com.sgzmd.flibustier.web.controllers
 
 import com.sgzmd.flibustier.web.db.GlobalSearch
+import com.sgzmd.flibustier.web.db.IGlobalSearch
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.security.AuthenticationFacade
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,11 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
-class IndexController() {
-    @Autowired lateinit var globalSearch: GlobalSearch
-    @Autowired lateinit var trackedEntryRepo: TrackedEntryRepository
-    @Autowired lateinit var authFacade: AuthenticationFacade
-
+class IndexController(
+    @Autowired val globalSearch: IGlobalSearch,
+    @Autowired val trackedEntryRepo: TrackedEntryRepository,
+    @Autowired val authFacade: AuthenticationFacade) {
 
     @GetMapping("/")
     fun index(
