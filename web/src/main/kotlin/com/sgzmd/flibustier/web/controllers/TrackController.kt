@@ -7,7 +7,6 @@ import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import com.sgzmd.flibustier.web.security.AuthenticationFacade
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -58,8 +57,6 @@ class TrackController(val repo: TrackedEntryRepository, val connectionProvider: 
         logger.warn("Entry type $entryType is not supported yet")
       }
     }
-
-
 
     return RedirectView("/")
   }

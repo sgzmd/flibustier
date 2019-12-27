@@ -1,8 +1,6 @@
 package com.sgzmd.flibustier.web.controllers
 
-import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
-import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import com.sgzmd.flibustier.web.security.AuthenticationFacade
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

@@ -1,6 +1,5 @@
 package com.sgzmd.flibustier.web.controllers
 
-import com.sgzmd.flibustier.web.db.GlobalSearch
 import com.sgzmd.flibustier.web.db.IGlobalSearch
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.security.AuthenticationFacade
