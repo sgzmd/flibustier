@@ -26,3 +26,6 @@ tmp/
 data/
 sqldump.sql
 config/
+h2.db.trace.db
+h2.db.mv.db
+*.db
