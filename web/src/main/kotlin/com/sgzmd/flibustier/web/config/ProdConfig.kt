@@ -11,20 +11,21 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("dev")
+@Profile("prod")
 @EnableScheduling
-class DevConfig {
-  @Autowired lateinit var updateChecker: UpdateChecker
+class ProdConfig {
+  @Autowired
+  lateinit var updateChecker: UpdateChecker
 
   @Bean
   fun getUserNotifier() = object : UserNotifier {
     val logger = LoggerFactory.getLogger(DevConfig::class.java)
     override fun notifyUser(userId: String, updated: String) {
-      logger.info("NotifyUser: $userId, update: $updated")
+      logger.info("PRODUCTION NotifyUser: $userId, update: $updated")
     }
   }
 
-  @Scheduled(fixedDelay = 5000)
+  @Scheduled(cron = "5 4 * * * *")
   fun checkUpdates() {
     updateChecker.checkUpdates()
   }
