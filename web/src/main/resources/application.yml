@@ -13,9 +13,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
-
-# spring.jpa.hibernate.ddl-auto
+      ddl-auto: update
 
 dev:
   userId: 1

@@ -1,0 +1,17 @@
+[Unit]
+Description=Flibustier
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=java -Dspring.jpa.hibernate.ddl-auto=update \
+    -Dspring.jpa.hibernate.ddl-auto=update \
+    -Dlogging.file=/var/log/flibustier.log \
+    -Dspring.profiles.active=prod \
+    -Dflibusta.dburl=jdbc:sqlite:/opt/apps/flibustier/flibusta.db \
+    -Dspring.datasource.url=jdbc:h2:file:/opt/apps/flibustier/web/h2.db \
+    -jar /opt/apps/flibustier/web/target/flibustier-web-0.0.1-SNAPSHOT.jar
+
+[Install]
+WantedBy=multi-user.target
