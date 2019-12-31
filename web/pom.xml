@@ -74,14 +74,12 @@
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
 			<version>3.30.1</version>
-			<scope>runtime</scope>
 		</dependency>
 
 		<!-- Data dependencies -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -125,6 +123,7 @@
 				<configuration>
 					<profiles>
 						<profile>dev</profile>
+						<profile>prod</profile>
 					</profiles>
 				</configuration>
 			</plugin>
