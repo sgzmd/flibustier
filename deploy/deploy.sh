@@ -16,4 +16,7 @@ cd web
 mvn package
 JAR_NAME=`ls -1 target/flibustier-web*jar`
 
-echo "java -Dspring.profiles.active=prod -Dflibusta.dburl=jdbc:sqlite:`pwd`/flibusta.db -Dspring.datasource.url=jdbc:h2:file:`pwd`/h2.db" -jar $JAR_NAME
+echo "Restarting Flibustier ... "
+sudo systemctl restart flibustier
+sleep 5
+sudo tail /var/log/flibustier.log
