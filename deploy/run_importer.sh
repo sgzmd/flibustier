@@ -9,4 +9,3 @@ mv flibusta.db ../
 
 echo "Success!"
 
-
