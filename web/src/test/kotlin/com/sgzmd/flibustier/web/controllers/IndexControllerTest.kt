@@ -43,6 +43,7 @@ class IndexControllerTest() {
                     FoundEntryType.SERIES,
                     name = "Унесенный ветром",
                     entryId = 34145,
+                    author = "Николай Александрович Метельский",
                     numEntities = 10))))
       }
     }
