@@ -9,6 +9,7 @@ ExecStart=java -Dspring.jpa.hibernate.ddl-auto=update \
     -Dlogging.file=/var/log/flibustier.log \
     -Dspring.profiles.active=prod \
     -Dflibusta.dburl=jdbc:sqlite:/opt/apps/flibustier/flibusta.db \
+    -Dflibustier.myemail=flibustier@r-k.co \
     -Dspring.datasource.url=jdbc:mysql://localhost:3306/flibustier \
     -Dspring.jpa.hibernate.ddl-auto=update \
     -Dspring.datasource.driver-class-name=com.mysql.jdbc.Driver \
