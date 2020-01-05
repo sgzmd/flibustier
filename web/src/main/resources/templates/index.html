@@ -1,51 +1,83 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <title>Getting Started: Serving Web Content</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link href="../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" />
 
     <style>
-    div.search-record {
-        padding-top: 1em;
-        padding-bottom: 0.5em;
-    }
+        div.search-record {
+            padding-top: 1em;
+            padding-bottom: 0.5em;
+        }
 
-    div.search-record > .title {
-        font-size: larger;
-        color: brown;
-    }
+        div.search-record>.title {
+            font-size: larger;
+            color: brown;
+        }
 
-    div.search-record > .author {
-        color: darkgrey;
-    }
-
+        div.search-record>.author {
+            color: darkgrey;
+        }
     </style>
 
 </head>
+
 <body>
 
-<h1>Flibusta Tracker</h1>
+    <div class="container">
+        <!-- https://medium.com/@omeryazir/how-to-integrate-spring-boot-with-bootstrap-and-thymeleaf-5744fc8475d
+        -->
 
-<form method="GET" action="/">
-    <input type="text" name="search_term"/>
-    <input type="submit"/>
-</form>
+        <div class="row">
+            <div class="col-md-8">
+                <h1>Flibusta Tracker</h1>
+                <form method="GET" action="/">
+                    <label for="search_term">Название серии</label><br />
+                    <input type="text" name="search_term" id="search_term" />
+                    <button>Искать</button>
+                </form>
 
-<div th:each="sr : ${searchResults}" class="search-record">
-    <div class="title">
-        <span th:text="${sr.name}"/>&nbsp;<a th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">Track</a>&nbsp;<a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${sr.entryId})}">Link</a>
-    </div>
-    <div class="author">
-        <span th:text="${sr.author}"/>
-    </div>
-</div>
 
-<div th:if="${tracked != null && !tracked.empty}">
-    <h2>Tracked entries</h2>
-    <div th:each="entry : ${tracked}">
-        <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${entry.entryId})}"><span th:text="${entry.entryName}"/></a> (<span th:text="${entry.numEntries}"/> entries) <a th:href="@{/untrack(id=${entry.id})}">x</a>
-    </div>
-</div>
+                <div th:each="sr : ${searchResults}" class="search-record">
+                    <div class="title">
+                        <span th:text="${sr.name}" />&nbsp;<a
+                            th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">Track</a>&nbsp;<a
+                            th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${sr.entryId})}">Link</a>
+                    </div>
+                    <div class="author">
+                        <span th:text="${sr.author}" />
+                    </div>
+                </div>
+
+                <div th:if="${tracked != null && !tracked.empty}">
+                    <h2>Tracked entries</h2>
+                    <div th:each="entry : ${tracked}">
+                        <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${entry.entryId})}"><span
+                                th:text="${entry.entryName}" /></a> (<span th:text="${entry.numEntries}" /> entries) <a
+                            th:href="@{/untrack(id=${entry.id})}">x</a>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="col-md-4">
+            </div>
+        </div>
+
+
+
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="../static/js/bootstrap.js" th:href="@{/js/bootstrap.js}"></script>
 
 </body>
+
 </html>
