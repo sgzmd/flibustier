@@ -23,9 +23,8 @@ class IndexController(
 
         if (searchTerm != null && searchTerm.length > 1) {
             val results = globalSearch.search(searchTerm!!)
-            if (!results.isEmpty()) {
-                model.addAttribute("searchResults", results)
-            }
+            // empty results should be handled gracefully with an alert.
+            model.addAttribute("searchResults", results)
         }
 
         val userId = authFacade.getUserId()
