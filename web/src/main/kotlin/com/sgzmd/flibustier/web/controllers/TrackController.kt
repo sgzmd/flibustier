@@ -35,6 +35,13 @@ class TrackController(val repo: TrackedEntryRepository, val connectionProvider: 
 
     when (entryType) {
       FoundEntryType.SERIES -> {
+        val allTrackedByUser = repo.findByUserId(user)
+        if (allTrackedByUser.filter { it.entryId == entryId && it.entryType == entryType }.isNotEmpty()) {
+          // Already tracking this entity
+          return RedirectView("/?already_tracking=$entryId&entryType=$entryType")
+        }
+
+
         val sql = """
                     SELECT lsn.SeqName, ls.SeqId, COUNT(1) NumEntries 
                     FROM libseq ls, libseqname lsn 
