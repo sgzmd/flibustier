@@ -11,6 +11,7 @@
     <meta name="author" content="">
 
     <link href="../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" />
+    <link href="../static/tooltip.css" rel="stylesheet" th:href="@{/tooltip.css}" />
 
     <style>
         div.search-record {
@@ -67,8 +68,8 @@
                             th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">Track</a>&nbsp;<a
                             th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${sr.entryId})}">Link</a>
                     </div>
-                    <div class="author">
-                        <span th:text="${sr.author}" />
+                    <div class="author" th:text="${#strings.abbreviate(sr.author, 250)}">
+                        <span class="tooltiptext" th:text="${sr.author}"/>
                     </div>
                 </div>
 

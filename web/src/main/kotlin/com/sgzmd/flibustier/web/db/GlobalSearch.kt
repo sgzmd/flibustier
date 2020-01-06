@@ -17,12 +17,12 @@ class GlobalSearch : IGlobalSearch {
         var q = rewriteQuery(searchTerm)
 
         val statement = connectionProvider.connection?.createStatement()
-        val prs = connectionProvider.connection?.prepareStatement("select\n" +
-            "    f.SeqName,\n" +
-            "    f.Authors,\n" +
-            "    f.SeqId,\n" +
-            "    (select count(ls.BookId) from libseq ls where ls.SeqId = f.SeqId) NumBooks\n" +
-            "from sequence_fts f where f.sequence_fts match ?")
+        val prs = connectionProvider.connection?.prepareStatement("""select
+    f.SeqName,
+    f.Authors,
+    f.SeqId,
+    (select count(ls.BookId) from libseq ls where ls.SeqId = f.SeqId) NumBooks
+from sequence_fts f where f.sequence_fts match ?""")
         prs?.setString(1, searchTerm + "*")
         val rs = prs?.executeQuery()
 
