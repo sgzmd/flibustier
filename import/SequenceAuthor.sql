@@ -20,3 +20,11 @@ create virtual table sequence_fts using fts5(seqName, authors, seqId);
 insert into sequence_fts select SeqName, Authors, SeqId from SequenceAuthor;
 
 select * from sequence_fts where sequence_fts match "унесенный";
+
+drop table if exists author_fts;
+create virtual table author_fts using fts5(authorName, authorId);
+
+insert into author_fts select 
+	an.FirstName || CASE when length(an.MiddleName) > 0 then " " || an.MiddleName  else "" end || " " || an.LastName || CASE when length(an.NickName) > 0 then " (" || an.MiddleName || ")"  else "" end, 
+	an.AvtorId 
+FROM libavtorname an;
