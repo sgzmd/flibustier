@@ -40,17 +40,15 @@
     <div class="container">
         <!-- https://medium.com/@omeryazir/how-to-integrate-spring-boot-with-bootstrap-and-thymeleaf-5744fc8475d
         -->
-
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-sm-12">
                 <h1>Flibusta Tracker</h1>
                 <form method="GET" action="/">
-                    <label for="search_term">Название серии</label><br />
-                    <input type="text" name="search_term" id="search_term" />
-                    <button>Искать</button>
+                    <label for="search_term"><span class="align-middle">Название серии</span></label><br />
+                    <input type="text" class="form-control mb-2" name="search_term" id="search_term"
+                        placeholder="Дозоры" />
+                    <button class="btn btn-primary mb-2">Искать</button>
                 </form>
-                <div class="col-md-4">
-                </div>
             </div>
         </div>
         <div class="row top-buffer"></div>
@@ -64,9 +62,9 @@
 
                 <div th:each="sr : ${searchResults}" class="search-record">
                     <div class="title">
-                        <span th:text="${sr.name}" />&nbsp;<a
-                            th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">Track</a>&nbsp;<a
-                            th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${sr.entryId})}">Link</a>
+                        <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${sr.entryId})}" target="_blank"><span
+                                th:text="${sr.name}" /></a>&nbsp;<a
+                            th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">(+)</a>
                     </div>
                     <div class="author" th:text="${#strings.abbreviate(sr.author, 250)}">
                         <span class="tooltiptext" th:text="${sr.author}"/>
