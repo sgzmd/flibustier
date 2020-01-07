@@ -29,7 +29,13 @@ internal class GlobalSearchTest {
 
   @Test
   fun testSearchSequence() {
-    val results = globalSearch.search("Унес")
+    val results = globalSearch.getSeriesResults("Унес")
+    assertEquals(1, results.size)
+  }
+
+  @Test
+  fun testSearchAuthor() {
+    val results = globalSearch.getAuthorResults("Метель")
     assertEquals(1, results.size)
   }
 }
