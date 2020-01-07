@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>Getting Started: Serving Web Content</title>
+    <title>Флибустьер</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,6 +26,11 @@
 
         div.search-record>.author {
             color: darkgrey;
+        }
+
+        div.entry-type {
+            font-size: small;
+            color: #555;
         }
 
         .top-buffer {
@@ -61,11 +66,12 @@
                 </div>
 
                 <div th:each="sr : ${searchResults}" class="search-record">
+                    <div class="entry-type" th:text="${sr.entryType}"/>
                     <div class="title">
                         <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${sr.entryId})}" target="_blank"><span
                                 th:text="${sr.name}" /></a>&nbsp;<a
                             th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">(+)</a>
-                    </div>
+                    </div>                    
                     <div class="author" th:text="${#strings.abbreviate(sr.author, 250)}">
                         <span class="tooltiptext" th:text="${sr.author}"/>
                     </div>

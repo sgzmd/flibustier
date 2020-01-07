@@ -14,7 +14,14 @@ class GlobalSearch : IGlobalSearch {
     override fun search(searchTerm: String) : List<SearchResult> {
         logger.info("Searching for '$searchTerm'")
 
-        return getSeriesResults(searchTerm)
+        val series = getSeriesResults(searchTerm)
+        val authors = getAuthorResults(searchTerm)
+
+        val result = mutableListOf<SearchResult>()
+        result.addAll(authors)
+        result.addAll(series)
+
+        return result
     }
 
     internal fun getAuthorResults(searchTerm: String) : List<SearchResult> {
@@ -22,9 +29,20 @@ class GlobalSearch : IGlobalSearch {
         val statement = connectionProvider.connection?.createStatement()
         val prs = connectionProvider.connection?.prepareStatement("""
             select 
-                authorName, authorId 
-            from author_fts 
-            where author_fts match(?);""".trimIndent())
+                a.authorName, 
+                a.authorId,
+                COUNT(1) as Count
+            from 
+                author_fts a,
+                libavtor la,
+                libbook lb
+            where     
+                a.author_fts match(?)
+                and la.AvtorId = a.authorId
+                and la.BookId = lb.BookId
+                and lb.Deleted != '1'
+            GROUP BY 1,2;
+            ;""".trimIndent())
         prs?.setString(1, searchTerm + "*")
         val rs = prs?.executeQuery()
 
@@ -39,7 +57,7 @@ class GlobalSearch : IGlobalSearch {
                     name = rs.getString("authorName"),
                     author = rs.getString("authorName"),
                     entryId = rs.getInt("authorId"),
-                    numEntities = /* FIXME */ 1))
+                    numEntities = rs.getInt("Count")))
         }
 
         return authors

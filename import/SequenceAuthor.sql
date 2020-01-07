@@ -28,3 +28,5 @@ insert into author_fts select
 	an.FirstName || CASE when length(an.MiddleName) > 0 then " " || an.MiddleName  else "" end || " " || an.LastName || CASE when length(an.NickName) > 0 then " (" || an.MiddleName || ")"  else "" end, 
 	an.AvtorId 
 FROM libavtorname an;
+
+select authorName, authorId from author_fts where author_fts match("Мете*");
