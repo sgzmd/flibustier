@@ -1,20 +1,62 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
-      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>Spring Security Example </title>
+    <title>Флибустьер: вход</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link href="../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" />
+    <link href="../static/tooltip.css" rel="stylesheet" th:href="@{/tooltip.css}" />
+
+    <style>
+        div.search-record {
+            padding-top: 1em;
+            padding-bottom: 0.5em;
+        }
+
+        div.search-record>.title {
+            font-size: larger;
+            color: brown;
+        }
+
+        div.search-record>.author {
+            color: darkgrey;
+        }
+
+        .top-buffer {
+            margin-top: 20px;
+        }
+    </style>
+
 </head>
+
 <body>
-<div th:if="${param.error}">
-    Invalid username and password.
-</div>
-<div th:if="${param.logout}">
-    You have been logged out.
-</div>
-<form th:action="@{/login}" method="post">
-    <div><label> User Name : <input type="text" name="username"/> </label></div>
-    <div><label> Password: <input type="password" name="password"/> </label></div>
-    <div><input type="submit" value="Sign In"/></div>
-</form>
+    <div class="container">
+        <div class="row">
+            <div th:if="${param.error}">
+                Invalid username and password.
+            </div>
+            <div th:if="${param.logout}">
+                You have been logged out.
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <form th:action="@{/login}" method="post">
+                    <div><label> User Name : <input type="text" class="form-control
+                mb-2" name="username" /> </label></div>
+                    <div><label> Password: <input type="password" class="form-control mb-2" name="password" /> </label>
+                    </div>
+                    <div><input type="submit" class="btn btn-primary mb-2" value="Sign In" /></div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>
