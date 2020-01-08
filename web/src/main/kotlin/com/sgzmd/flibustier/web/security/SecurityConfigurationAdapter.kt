@@ -16,7 +16,7 @@ class SecurityConfigurationAdapter : WebSecurityConfigurerAdapter() {
         http
             ?.csrf()?.disable()
             ?.authorizeRequests()
-            ?.antMatchers("/info", "/login*")?.permitAll()
+            ?.antMatchers("/info", "/login*", "/css/*", "/js/*", "/*.css")?.permitAll()
             ?.anyRequest()?.authenticated()
             ?.and()
             ?.formLogin()
