@@ -33,15 +33,14 @@ class TrackController(val repo: TrackedEntryRepository, val connectionProvider: 
     val auth = authFacade.authentication()
     val user = authFacade.getUserId()
 
+    val allTrackedByUser = repo.findByUserId(user)
+    if (allTrackedByUser.filter { it.entryId == entryId && it.entryType == entryType }.isNotEmpty()) {
+      // Already tracking this entity
+      return RedirectView("/?already_tracking=$entryId&entryType=$entryType")
+    }
+
     when (entryType) {
       FoundEntryType.SERIES -> {
-        val allTrackedByUser = repo.findByUserId(user)
-        if (allTrackedByUser.filter { it.entryId == entryId && it.entryType == entryType }.isNotEmpty()) {
-          // Already tracking this entity
-          return RedirectView("/?already_tracking=$entryId&entryType=$entryType")
-        }
-
-
         val sql = """
                     SELECT lsn.SeqName, ls.SeqId, COUNT(1) NumEntries 
                     FROM libseq ls, libseqname lsn 
@@ -59,6 +58,31 @@ class TrackController(val repo: TrackedEntryRepository, val connectionProvider: 
             repo.save(TrackedEntry(FoundEntryType.SERIES, seqName, entryId, numEntries, user))
           }
         }
+      }
+      FoundEntryType.AUTHOR -> {
+        val sql = """
+                    select 
+                      count(1) NumEntries, 
+                      a.authorName
+                    from libbook lb, libavtor la, author_fts a
+                    where la.BookId = lb.BookId 
+                    and a.authorId = la.AvtorId
+                    and lb.Deleted != '1'
+                    and la.AvtorId = ?
+                    group by la.AvtorId;
+                """.trimIndent()
+        val prs = connectionProvider.connection?.prepareStatement(sql)
+        prs?.setInt(1, entryId)
+        val rs = prs?.executeQuery()
+        if (rs != null) {
+          if (rs.next()) {
+            val authorName = rs.getString("authorName")
+            val numEntries = rs.getInt("NumEntries")
+
+            repo.save(TrackedEntry(FoundEntryType.AUTHOR, authorName, entryId, numEntries, user))
+          }
+        }
+
       }
       else -> {
         logger.warn("Entry type $entryType is not supported yet")
