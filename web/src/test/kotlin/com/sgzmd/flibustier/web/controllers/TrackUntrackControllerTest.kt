@@ -4,6 +4,7 @@ import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.GlobalSearch
 import com.sgzmd.flibustier.web.db.IGlobalSearch
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
+import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import junit.framework.Assert.assertEquals
 import org.junit.Before
 import org.junit.BeforeClass
@@ -71,4 +72,15 @@ internal class TrackUntrackControllerTest {
 
     assertEquals("Николай Александрович Метельский", entry.entryName)
   }
+
+  @Test
+  @WithMockUser("testuser")
+  fun testUntrack_Author() {
+    repo.save(TrackedEntry(FoundEntryType.AUTHOR, "", 109170, 10, "testuser"))
+    val record = repo.findByEntryId(109170)[0]
+    untrackController.untrack(record.id)
+    val all = repo.findAll()
+    assertEquals(0, all.count())
+  }
+
 }
