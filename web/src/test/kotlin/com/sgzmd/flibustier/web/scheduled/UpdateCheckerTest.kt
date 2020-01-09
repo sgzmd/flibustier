@@ -7,7 +7,6 @@ import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired

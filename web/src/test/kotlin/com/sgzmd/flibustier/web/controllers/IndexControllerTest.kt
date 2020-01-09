@@ -17,10 +17,11 @@ import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-@SpringBootTest
+
 @RunWith(SpringRunner::class)
 @ActiveProfiles("test")
 @SpringJUnitWebConfig
+@SpringBootTest
 class IndexControllerTest() {
   @Autowired lateinit var wac: WebApplicationContext
 
@@ -46,6 +47,30 @@ class IndexControllerTest() {
                     author = "Николай Александрович Метельский",
                     numEntities = 10))))
       }
+      content {
+        string(Matchers.containsString("Николай Александрович Метельский"))
+      }
+    }
+
+    mockMvc.get("/?search_term=Метель").andExpect {
+      status { isOk }
+      content {
+        string(Matchers.containsString("Николай Александрович Метельский"))
+        string(Matchers.containsString("AUTHOR"))
+      }
+    }
+
+  }
+
+  @Test
+  @WithMockUser("testuser")
+  fun testIndexPage() {
+    mockMvc.get("/").andExpect {
+      status { isOk }
+      content {
+        string(Matchers.containsString("Флибустьер"))
+      }
     }
   }
+
 }

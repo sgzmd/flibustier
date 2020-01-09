@@ -1,22 +1,15 @@
 package com.sgzmd.flibustier.web.controllers
 
 import com.sgzmd.flibustier.web.db.FoundEntryType
-import com.sgzmd.flibustier.web.db.GlobalSearch
-import com.sgzmd.flibustier.web.db.IGlobalSearch
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import junit.framework.Assert.assertEquals
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.support.GenericApplicationContext
-import org.springframework.context.support.registerBean
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.stereotype.Component
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringRunner
