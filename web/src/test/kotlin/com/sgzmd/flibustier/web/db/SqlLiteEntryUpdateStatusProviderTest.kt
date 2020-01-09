@@ -24,7 +24,7 @@ internal class SqlLiteEntryUpdateStatusProviderTest {
   }
 
   @Test
-  fun checkForUpdates_UpdateRequired() {
+  fun checkForUpdates_SeriesUpdateRequired() {
     val tracked = TrackedEntry(FoundEntryType.SERIES, "Whatever", 34145, 5)
     val result = entryUpdateStatusProvider.checkForUpdates(listOf(tracked))
 
@@ -33,6 +33,18 @@ internal class SqlLiteEntryUpdateStatusProviderTest {
     assertEquals(34145, updateRequired.entry.entryId)
     assertEquals(10, updateRequired.newCount)
   }
+
+  @Test
+  fun checkForUpdates_AuthorUpdateRequired() {
+    val tracked = TrackedEntry(FoundEntryType.AUTHOR, "Whatever", 109170, 3)
+    val result = entryUpdateStatusProvider.checkForUpdates(listOf(tracked))
+
+    assertEquals(1, result.size)
+    val updateRequired = result[0]
+    assertEquals(109170, updateRequired.entry.entryId)
+    assertEquals(8, updateRequired.newCount)
+  }
+
 
   @Test
   fun checkForUpdates_UpdateNotRequired() {

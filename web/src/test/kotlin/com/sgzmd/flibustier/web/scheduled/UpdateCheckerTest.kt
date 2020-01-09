@@ -37,12 +37,17 @@ internal class UpdateCheckerTest {
   @Autowired
   lateinit var repo: TrackedEntryRepository
 
-  @Mock
   lateinit var entryUpdateProvider: IEntryUpdateStatusProvider
 
+  @Before
+  fun setUp() {
+    entryUpdateProvider = Mockito.mock(IEntryUpdateStatusProvider::class.java)
+    repo.deleteAll()
+  }
+
   @Test
-  fun checkUpdates() {
-    val entry = TrackedEntry(FoundEntryType.SERIES, "Test", 1, 2, "user")
+  fun checkUpdates_Series() {
+    val entry = TrackedEntry(FoundEntryType.SERIES, "Test Series", 1, 2, "user_series")
     repo.save(entry)
 
     whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
@@ -52,6 +57,21 @@ internal class UpdateCheckerTest {
     val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier)
     updateChecker.checkUpdates()
 
-    verify(testUserNotifier).notifyUser("user", "Test")
+    verify(testUserNotifier).notifyUser("user_series", "Test Series")
+  }
+
+  @Test
+  fun checkUpdates_Author() {
+    val entry = TrackedEntry(FoundEntryType.AUTHOR, "Test Author", 1, 2, "user_author")
+    repo.save(entry)
+
+    whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
+            .thenReturn(listOf(IEntryUpdateStatusProvider.UpdateRequired(
+                    entry, 3)))
+
+    val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier)
+    updateChecker.checkUpdates()
+
+    verify(testUserNotifier).notifyUser("user_author", "Test Author")
   }
 }
