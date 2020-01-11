@@ -8,6 +8,7 @@ cd flibustier
 git pull
 git checkout master
 cd import
+rm lib.*gz*
 /home/sgzmd/.local/bin/pip3 install pipenv
 /home/sgzmd/.local/bin/pipenv run python import.py
 cd ..
