@@ -35,8 +35,6 @@ class SecurityConfigurationAdapter : WebSecurityConfigurerAdapter() {
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth.inMemoryAuthentication()
             .withUser("sgzmd").password(passwordEncoder()!!.encode("123")).roles("USER")
-            .and()
-            .withUser("admin").password(passwordEncoder()!!.encode("123456")).roles("ADMIN")
     }
     @Bean
     fun passwordEncoder(): PasswordEncoder? {
