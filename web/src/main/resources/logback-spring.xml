@@ -1,0 +1,36 @@
+<configuration debug="true">
+    <springProfile name="prod">
+        <appender name="loggly" class="ch.qos.logback.ext.loggly.LogglyAppender">
+            <endpointUrl>https://logs-01.loggly.com/inputs/ae7db651-bf9d-4b25-91a8-25108f9e4226/tag/logback
+            </endpointUrl>
+            <pattern>%d{"ISO8601", UTC} %p %t %c %M - %m%n</pattern>
+        </appender>
+
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <Pattern>
+                    %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+                </Pattern>
+            </layout>
+        </appender>
+
+        <root level="info">
+            <appender-ref ref="loggly"/>
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+    <springProfile name="dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <Pattern>
+                    %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+                </Pattern>
+            </layout>
+        </appender>
+
+        <root level="info">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+</configuration>
