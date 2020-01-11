@@ -9,7 +9,12 @@ class GlobalSearch : IGlobalSearch {
     @Autowired private lateinit var connectionProvider: ConnectionProvider
     private val logger = LoggerFactory.getLogger(GlobalSearch::class.java)
 
-    data class SearchResult(val entryType: FoundEntryType, val name: String, val author: String, val entryId: Int, val numEntities: Int)
+    data class SearchResult(
+        val entryType: FoundEntryType,
+        val name: String,
+        val author: String,
+        val entryId: Int,
+        val numEntities: Int)
 
     override fun search(searchTerm: String) : List<SearchResult> {
         logger.info("Searching for '$searchTerm'")

@@ -59,7 +59,16 @@ class IndexControllerTest() {
         string(Matchers.containsString("AUTHOR"))
       }
     }
+  }
 
+  @Test
+  @WithMockUser("testuser")
+  fun testShowsNumBooks() {
+    mockMvc.get("/?search_term=Унес").andExpect {
+      content {
+        string(Matchers.containsString("книг: <span>10</span>"))
+      }
+    }
   }
 
   @Test

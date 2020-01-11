@@ -69,9 +69,11 @@
                     <div class="entry-type" th:text="${sr.entryType}"/>
                     <div class="title">
                         <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${sr.entryId})}" target="_blank"><span
-                                th:text="${sr.name}" /></a>&nbsp;<a
+                                th:text="${sr.name}" /></a>&nbsp;
+                                <span>(книг: <span th:text="${sr.numEntities}"/>)</span>
+                                &nbsp;<a
                             th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">(+)</a>
-                    </div>                    
+                    </div>
                     <div class="author" th:text="${#strings.abbreviate(sr.author, 250)}">
                         <span class="tooltiptext" th:text="${sr.author}"/>
                     </div>
