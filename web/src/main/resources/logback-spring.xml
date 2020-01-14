@@ -14,6 +14,31 @@
             </encoder>
         </appender>
 
+        <appender name="Audit" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/var/log/flibustier-audit.log</file>
+
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- daily rollover -->
+                <fileNamePattern>flibustier-audit.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+                <!-- keep 30 days' worth of history capped at 3GB total size -->
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>50mb</totalSizeCap>
+            </rollingPolicy>
+
+
+            <encoder>
+                <pattern>%date %msg [%file:%line]%n</pattern>
+            </encoder>
+        </appender>
+
+
+
+        <logger name="audit" level="DEBUG" additivity="false">
+            <appender-ref ref="Audit"/>
+        </logger>
+
+
         <root level="info">
             <appender-ref ref="loggly"/>
             <appender-ref ref="FILE"/>
@@ -27,6 +52,27 @@
                 </Pattern>
             </layout>
         </appender>
+
+        <appender name="Audit" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>audit.log</file>
+
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- daily rollover -->
+                <fileNamePattern>flibustier-audit.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+                <!-- keep 30 days' worth of history capped at 3GB total size -->
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>5mb</totalSizeCap>
+            </rollingPolicy>
+
+            <encoder>
+                <pattern>%date %msg [%file:%line]%n</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="audit" level="DEBUG" additivity="false">
+            <appender-ref ref="Audit"/>
+        </logger>
 
         <root level="info">
             <appender-ref ref="CONSOLE"/>

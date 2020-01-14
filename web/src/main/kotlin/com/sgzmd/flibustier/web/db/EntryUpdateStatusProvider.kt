@@ -15,6 +15,7 @@ interface IEntryUpdateStatusProvider {
 @Component
 class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvider) : IEntryUpdateStatusProvider {
   private val logger = LoggerFactory.getLogger(SqlLiteEntryUpdateStatusProvider::class.java)
+  val auditLog = LoggerFactory.getLogger("audit")
 
   override fun checkForUpdates(entries: List<TrackedEntry>): MutableList<IEntryUpdateStatusProvider.UpdateRequired> {
     val sqlAuthor = """
@@ -29,6 +30,9 @@ class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvide
     val result = mutableListOf<IEntryUpdateStatusProvider.UpdateRequired>()
     val prsAuthor = connectionProvider.connection?.prepareStatement(sqlAuthor)
     val prsSeries = connectionProvider.connection?.prepareStatement(sqlSeries)
+
+    auditLog.info("There are ${byEntryId.keys.size} keys in byEntryId")
+
     for (entryId in byEntryId.keys) {
       logger.info("Evaluating updates for entryId=$entryId")
       val group = byEntryId[entryId]
@@ -54,6 +58,9 @@ class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvide
     if (resultSet?.next()!!) {
       val newCount = resultSet?.getInt("Cnt")
       val toBeUpdated = entriesOfType?.filter { it.numEntries < newCount }
+
+      auditLog.info("For type=$type and entryId=$entryId there are ${toBeUpdated?.size} records to be updated")
+
       toBeUpdated?.forEach {
         result.add(IEntryUpdateStatusProvider.UpdateRequired(it, newCount))
       }

@@ -1,5 +1,6 @@
 package com.sgzmd.flibustier.web.scheduled
 
+import com.sgzmd.flibustier.web.db.ConnectionProvider
 import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.IEntryUpdateStatusProvider
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
@@ -10,6 +11,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
@@ -36,6 +38,11 @@ internal class UpdateCheckerTest {
   @Autowired
   lateinit var repo: TrackedEntryRepository
 
+  @Autowired @Value("\${flibusta.dburl}")
+  lateinit var dbUrl: String
+  @Autowired
+  lateinit var connectionProvider: ConnectionProvider
+
   lateinit var entryUpdateProvider: IEntryUpdateStatusProvider
 
   @Before
@@ -53,7 +60,7 @@ internal class UpdateCheckerTest {
         .thenReturn(listOf(IEntryUpdateStatusProvider.UpdateRequired(
             entry, 3)))
 
-    val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier)
+    val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
     updateChecker.checkUpdates()
 
     verify(testUserNotifier).notifyUser("user_series", "Test Series")
@@ -68,7 +75,7 @@ internal class UpdateCheckerTest {
             .thenReturn(listOf(IEntryUpdateStatusProvider.UpdateRequired(
                     entry, 3)))
 
-    val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier)
+    val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
     updateChecker.checkUpdates()
 
     verify(testUserNotifier).notifyUser("user_author", "Test Author")
