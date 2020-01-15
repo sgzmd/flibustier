@@ -7,8 +7,6 @@ set -e
 cd /opt/apps/flibustier
 git pull
 git checkout master
-cd web
-mvn package
 
 echo "Restarting Flibustier ... "
 sudo systemctl restart flibustier
