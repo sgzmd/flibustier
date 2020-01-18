@@ -16,6 +16,10 @@ class TrackedEntry(
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Long = 0
 
+    // I cannot make enum comparison work with Thymeleaf so this is a workaround until then.
+    fun isSeries(): Boolean = entryType == FoundEntryType.SERIES
+    fun isAuthor(): Boolean = entryType == FoundEntryType.AUTHOR
+
     constructor() : this(null, null, null)
 
     override fun toString(): String {

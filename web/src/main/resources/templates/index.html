@@ -10,8 +10,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <link href="../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" />
-    <link href="../static/tooltip.css" rel="stylesheet" th:href="@{/tooltip.css}" />
+    <link rel="stylesheet" th:href="@{/css/bootstrap.css}" />
 
     <style>
         div.search-record {
@@ -28,13 +27,22 @@
             color: darkgrey;
         }
 
-        div.entry-type {
+        .entry-type {
             font-size: small;
             color: #555;
         }
 
         .top-buffer {
             margin-top: 20px;
+        }
+
+        .untrack {
+            text-decoration: none !important;
+            border:0px !important;
+            outline:none;
+            border-width: 0px;
+            outline-width:0px;
+            border-bottom: none;
         }
     </style>
 
@@ -66,12 +74,12 @@
                 </div>
 
                 <div th:each="sr : ${searchResults}" class="search-record">
-                    <div class="entry-type" th:text="${sr.entryType}"/>
+                    <div class="entry-type" th:text="${sr.entryType}" />
                     <div class="title">
                         <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${sr.entryId})}" target="_blank"><span
                                 th:text="${sr.name}" /></a>&nbsp;
-                                <span>(книг: <span th:text="${sr.numEntities}"/>)</span>
-                                &nbsp;<a
+                        <span>(книг: <span th:text="${sr.numEntities}"/>)</span>
+                        &nbsp;<a
                             th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">(+)</a>
                     </div>
                     <div class="author" th:text="${#strings.abbreviate(sr.author, 250)}">
@@ -89,11 +97,24 @@
             <div class="col-md-8">
                 <div th:if="${tracked != null && !tracked.empty}">
                     <h3>Отслеживаемые серии</h3>
+
                     <div th:each="entry : ${tracked}">
-                        <span th:text="${entry.entryType}"/>
-                        <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${entry.entryId})}"><span
-                                th:text="${entry.entryName}" /></a> (<span th:text="${entry.numEntries}" /> entries)
-                        <a th:href="@{/untrack(id=${entry.id})}">x</a>
+                        <span th:if="${entry.isSeries()}">
+                            <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${entry.entryId})}" th:text="${entry.entryName}"/>
+                            <span class="entry-type">Серия, <span th:text="${entry.numEntries}" /> книг</span>
+                        </span>
+
+                        <span th:if="${entry.isAuthor()}">                            
+                            <a th:href="@{http://flibusta.is/author/{authorId}(authorId=${entry.entryId})}" th:text="${entry.entryName}"/>
+                            <span class="entry-type">Автор, <span th:text="${entry.numEntries}" /> книг</span>
+                        </span>
+
+                        <a 
+                            th:href="@{/untrack(id=${entry.id})}" 
+                            class="untrack" 
+                            data-toggle="tooltip" 
+                            data-placement="bottom" 
+                            title="Прекратить отслеживать обновления"><span>&#x1f5d1</span></a>
                     </div>
                 </div>
             </div>
@@ -105,6 +126,9 @@
 
 
         <script src="../static/js/bootstrap.js" th:href="@{/js/bootstrap.js}"></script>
+        <script>
+            $(".untrack").tooltip();
+        </script>
 
 </body>
 
