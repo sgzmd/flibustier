@@ -20,6 +20,7 @@ class IndexController(
             @RequestParam(name = "search_term", required = false) searchTerm: String?,
             model: Model) : String {
         model.addAttribute("name", "world")
+        model.addAttribute("username", authFacade.getUserId())
 
         if (searchTerm != null && searchTerm.length > 1) {
             val results = globalSearch.search(searchTerm!!)
