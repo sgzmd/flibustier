@@ -10,20 +10,19 @@ import org.springframework.stereotype.Component
 
 @Component
 @Profile("prod")
-class EmailUserNotifier(@Autowired val mailSender: JavaMailSender,
-                        @Value("\${flibustier.myemail}") val myemail: String) : UserNotifier {
-  val logger = LoggerFactory.getLogger(EmailUserNotifier::class.java)
-  override fun notifyUser(userId: String, updated: String) {
-    logger.info("Notifying user $userId with update $updated")
-    // Once we have proper users, this will have to be rewritten.
-    if (userId == "sgzmd") {
-      val msg = SimpleMailMessage()
-      msg.setTo(myemail)
-      msg.setSubject("Updates detected by Flibustier")
-      msg.setText(updated)
-      mailSender.send(msg)
+class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifier {
+    val auditLog = LoggerFactory.getLogger("audit")
 
-      logger.info("Message $msg sent.")
+    override fun notifyUser(userId: String, updated: String) {
+        auditLog.info("Notifying user $userId with update $updated")
+        // Once we have proper users, this will have to be rewritten.
+
+        val msg = SimpleMailMessage()
+        msg.setTo(userId)
+        msg.setSubject("Updates detected by Flibustier")
+        msg.setText(updated)
+        mailSender.send(msg)
+
+        auditLog.info("Message $msg sent.")
     }
-  }
 }
