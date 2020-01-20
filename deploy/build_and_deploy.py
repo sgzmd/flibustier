@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(description='Deploys Flibustier to VPS')
 parser.add_argument('--vps_key', type=str, help='SSH key to use when connecting to the host')
 parser.add_argument('--host', type=str, help='Host to communicate with')
 parser.add_argument('--user', type=str, help='Username at remote host')
-parser.add_argument('--remote_path', type=str, help="Path to Flibustier installation on remote host")
+parser.add_argument('--remote_path', type=str, help="Path to Flibustier jar directory on remote host")
 
 args = parser.parse_args()
 

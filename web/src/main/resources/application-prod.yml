@@ -1,0 +1,27 @@
+server:
+  use-forwarded-headers: true
+  tomcat:
+    remote-ip-header: x-forwarded-for
+    protocol-header: x-forwarded-proto
+
+spring:
+  devtools:
+    livereload:
+      port: 35730
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    username: flibustier
+    password: flibusta
+    url: jdbc:mysql://localhost:3306/flibustier
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDB53Dialect
+
+flibusta:
+  dburl: "jdbc:sqlite:/opt/apps/flibustier/flibusta.db"
+
+logging:
+  file: /var/log/flibustier.log

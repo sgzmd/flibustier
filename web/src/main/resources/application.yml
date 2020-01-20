@@ -20,5 +20,8 @@ spring:
 dev:
   userId: 1
 
+server:
+  use-forwarded-headers: true
+
 flibusta:
   dburl: "jdbc:sqlite:../data/flibusta.db"

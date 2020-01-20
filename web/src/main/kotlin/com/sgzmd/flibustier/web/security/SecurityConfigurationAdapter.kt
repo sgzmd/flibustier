@@ -1,5 +1,6 @@
 package com.sgzmd.flibustier.web.security
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -25,7 +26,7 @@ class OAuth2LoginSecurityConfig1 : WebSecurityConfigurerAdapter() {
 @Configuration
 @EnableWebSecurity
 @Profile("!test")
-class OAuth2LoginSecurityConfig : WebSecurityConfigurerAdapter() {
+class OAuth2LoginSecurityConfig() : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity) {
         http
             .csrf().disable()
