@@ -131,13 +131,13 @@
 <!--        </dependency>-->
 
 
-<!--        &lt;!&ndash; Unclear why this is needed, but tests fail without it, possibly a problem with Spring Boot? &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.security</groupId>-->
-<!--            <artifactId>spring-security-ldap</artifactId>-->
-<!--            <version>5.2.1.RELEASE</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
+        <!-- Unclear why this is needed, but tests fail without it, possibly a problem with Spring Boot? -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-ldap</artifactId>
+            <version>5.2.1.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
 
 
         <!-- Testing -->
