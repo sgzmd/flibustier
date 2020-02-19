@@ -1,0 +1,6 @@
+.mode insert libavtor
+select * from libavtor where avtorid = 1801;
+.mode insert libavtorname
+select * from libavtorname where avtorid = 1801;
+.mode insert libbook
+select * from libbook where bookid in (select bookid from libavtor where avtorid = 1801);

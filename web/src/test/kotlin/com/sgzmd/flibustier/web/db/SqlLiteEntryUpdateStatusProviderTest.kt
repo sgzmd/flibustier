@@ -53,4 +53,20 @@ internal class SqlLiteEntryUpdateStatusProviderTest {
 
     assertEquals(0, result.size)
   }
+
+  @Test
+  fun checkLukianenko() {
+    val tracked = TrackedEntry(FoundEntryType.AUTHOR,
+        entryName = "Сергей Лукьяненко",
+        entryId = 1801,
+        userId = "user@email.com",
+        numEntries = 390)
+    val result = entryUpdateStatusProvider.checkForUpdates(listOf(tracked))
+
+
+    assertEquals(1, result.size)
+    val updateRequired = result[0]
+    assertEquals(1801, updateRequired.entry.entryId)
+    assertEquals(392, updateRequired.newCount)
+  }
 }

@@ -17,7 +17,13 @@ class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvide
   private val logger = LoggerFactory.getLogger(SqlLiteEntryUpdateStatusProvider::class.java)
   val auditLog = LoggerFactory.getLogger("audit")
 
+  fun forceReload() {
+    connectionProvider.reload()
+  }
+
   override fun checkForUpdates(entries: List<TrackedEntry>): MutableList<IEntryUpdateStatusProvider.UpdateRequired> {
+    forceReload()
+
     val sqlAuthor = """
       select count(1) Cnt 
       from libavtor la, libbook lb 
@@ -36,7 +42,6 @@ class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvide
     for (entryId in byEntryId.keys) {
       logger.info("Evaluating updates for entryId=$entryId")
       val group = byEntryId[entryId]
-      val type = FoundEntryType.AUTHOR
 
       // Processing authors
       processEntriesOfType(group, FoundEntryType.AUTHOR, prsAuthor, entryId, result)
@@ -55,11 +60,16 @@ class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvide
     val entriesOfType = group?.filter { it.entryType == type }
     prs?.setInt(1, entryId!!)
     val resultSet = prs?.executeQuery()
+    if (entriesOfType?.isNullOrEmpty()!!) {
+      return
+    }
+    val entryName = entriesOfType.first().entryName
+
     if (resultSet?.next()!!) {
       val newCount = resultSet?.getInt("Cnt")
       val toBeUpdated = entriesOfType?.filter { it.numEntries < newCount }
 
-      auditLog.info("For type=$type and entryId=$entryId there are ${toBeUpdated?.size} records to be updated")
+      auditLog.info("For type=$type and entryId=$entryId ($entryName) there are ${toBeUpdated?.size} records to be updated")
 
       toBeUpdated?.forEach {
         result.add(IEntryUpdateStatusProvider.UpdateRequired(it, newCount))
