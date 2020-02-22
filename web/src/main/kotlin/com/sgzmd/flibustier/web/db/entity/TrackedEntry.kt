@@ -11,7 +11,7 @@ class TrackedEntry(
     val entryType: FoundEntryType?,
     val entryName: String?,
     val entryId: Int?,
-    val numEntries: Int = 0,
+    var numEntries: Int = 0,
     val userId: String = "") {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Long = 0

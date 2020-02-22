@@ -9,7 +9,7 @@ import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("prod")
+//@Profile("prod")
 class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifier {
     val auditLog = LoggerFactory.getLogger("audit")
 

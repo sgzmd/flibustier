@@ -2,6 +2,7 @@ package com.sgzmd.flibustier.web.db
 
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.sql.PreparedStatement
 
@@ -15,6 +16,10 @@ interface IEntryUpdateStatusProvider {
 @Component
 class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvider) : IEntryUpdateStatusProvider {
   private val logger = LoggerFactory.getLogger(SqlLiteEntryUpdateStatusProvider::class.java)
+
+  @Autowired
+  lateinit var repo: TrackedEntryRepository
+
   val auditLog = LoggerFactory.getLogger("audit")
 
   fun forceReload() {
@@ -73,6 +78,8 @@ class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvide
 
       toBeUpdated?.forEach {
         result.add(IEntryUpdateStatusProvider.UpdateRequired(it, newCount))
+        it.numEntries = newCount
+        repo.save(it)
       }
     }
   }
