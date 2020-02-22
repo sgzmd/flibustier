@@ -9,7 +9,7 @@ import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.stereotype.Component
 
 @Component
-//@Profile("prod")
+@Profile("prod")
 class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifier {
     val auditLog = LoggerFactory.getLogger("audit")
 
@@ -24,5 +24,13 @@ class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifie
         mailSender.send(msg)
 
         auditLog.info("Message $msg sent.")
+    }
+}
+
+@Component
+@Profile("dev")
+class FakeUserNotifier() : UserNotifier {
+    override fun notifyUser(userId: String, updated: String) {
+
     }
 }

@@ -16,11 +16,14 @@ import org.springframework.test.context.junit4.SpringRunner
 internal class SqlLiteEntryUpdateStatusProviderTest {
   @Autowired
   lateinit var connectionProvider: ConnectionProvider
+  @Autowired
+  lateinit var repo: TrackedEntryRepository
+
   lateinit var entryUpdateStatusProvider: IEntryUpdateStatusProvider
 
   @Before
   fun setUp() {
-    entryUpdateStatusProvider = SqlLiteEntryUpdateStatusProvider(connectionProvider)
+    entryUpdateStatusProvider = SqlLiteEntryUpdateStatusProvider(connectionProvider, repo)
   }
 
   @Test

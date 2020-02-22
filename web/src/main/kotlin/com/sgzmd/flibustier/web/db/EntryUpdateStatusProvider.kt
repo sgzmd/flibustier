@@ -14,11 +14,9 @@ interface IEntryUpdateStatusProvider {
 }
 
 @Component
-class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvider) : IEntryUpdateStatusProvider {
+class SqlLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvider,
+                                       val repo: TrackedEntryRepository) : IEntryUpdateStatusProvider {
   private val logger = LoggerFactory.getLogger(SqlLiteEntryUpdateStatusProvider::class.java)
-
-  @Autowired
-  lateinit var repo: TrackedEntryRepository
 
   val auditLog = LoggerFactory.getLogger("audit")
 
