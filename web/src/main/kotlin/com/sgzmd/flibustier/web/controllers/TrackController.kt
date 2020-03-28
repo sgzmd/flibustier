@@ -42,21 +42,29 @@ class TrackController(val repo: TrackedEntryRepository, val connectionProvider: 
     when (entryType) {
       FoundEntryType.SERIES -> {
         val sql = """
-                    SELECT lsn.SeqName, ls.SeqId, COUNT(1) NumEntries 
-                    FROM libseq ls, libseqname lsn 
-                    WHERE ls.seqId = lsn.seqId and ls.seqId = ?
-                    GROUP BY ls.seqId
+                    SELECT lsn.SeqName, ls.SeqId, b.Title, b.BookId
+                    FROM libseq ls, libseqname lsn , libbook b
+                    WHERE ls.seqId = lsn.seqId and ls.seqId = ? and ls.BookId = b.BookId and b.Deleted != '1'
+					          group by b.BookId
+					          order by ls.SeqNumb;
                 """.trimIndent()
         val prs = connectionProvider.connection?.prepareStatement(sql)
         prs?.setInt(1, entryId)
         val rs = prs?.executeQuery()
-        if (rs != null) {
-          if (rs.next()) {
-            val seqName = rs.getString("SeqName")
-            val numEntries = rs.getInt("NumEntries")
 
-            repo.save(TrackedEntry(FoundEntryType.SERIES, seqName, entryId, numEntries, user))
+        if (rs != null) {
+          var seqName : String? = null
+          var numEntries = 0
+          val books = mutableListOf<Pair<String, Int>>()
+          while (rs.next()) {
+            ++numEntries
+            if (seqName == null) {
+              seqName = rs.getString("SeqName")
+            }
+            books.add(Pair(rs.getString("Title"), rs.getInt("BookId")))
           }
+
+          repo.save(TrackedEntry(FoundEntryType.SERIES, seqName, entryId, numEntries, user))
         }
       }
       FoundEntryType.AUTHOR -> {
