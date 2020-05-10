@@ -11,6 +11,8 @@ class Book(val bookName: String?, val bookId: Int?) {
 
     @ManyToMany(mappedBy = "books")
     var trackedEntries: List<TrackedEntry> = mutableListOf()
+
+    constructor() : this(null, null)
 }
 
 @Entity

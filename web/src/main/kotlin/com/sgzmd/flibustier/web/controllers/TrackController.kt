@@ -80,7 +80,7 @@ class TrackController(val repo: TrackedEntryRepository, val connectionProvider: 
                     and a.authorId = la.AvtorId
                     and lb.Deleted != '1'
                     and la.AvtorId = ?
-                    group by la.AvtorId;
+                    group by la.BookId;
                 """.trimIndent()
                 val prs = connectionProvider.connection?.prepareStatement(sql)
                 prs?.setInt(1, entryId)
@@ -88,17 +88,19 @@ class TrackController(val repo: TrackedEntryRepository, val connectionProvider: 
                 if (rs != null) {
                     var authorName: String? = null
                     var numEntries = 0
-                    val books = mutableListOf<Pair<String, Int>>()
+                    val books = mutableListOf<Book>()
 
                     while (rs.next()) {
                         ++numEntries
                         if (authorName == null) {
                             authorName = rs.getString("authorName")
                         }
-                        books.add(Pair(rs.getString("Title"), rs.getInt("BookId")))
+                        books.add(Book(rs.getString("Title"), rs.getInt("BookId")))
                     }
 
-                    repo.save(TrackedEntry(FoundEntryType.AUTHOR, authorName, entryId, numEntries, user))
+                    val trackedEntry = TrackedEntry(FoundEntryType.AUTHOR, authorName, entryId, numEntries, user)
+                    trackedEntry.books = books
+                    repo.save(trackedEntry)
                 }
 
             }
