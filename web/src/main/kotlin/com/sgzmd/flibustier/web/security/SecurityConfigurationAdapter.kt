@@ -3,6 +3,7 @@ package com.sgzmd.flibustier.web.security
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 //@Configuration
 //@EnableWebSecurity
 //@Profile("!test")
+@Order(102)
 class OAuth2LoginSecurityConfig1 : WebSecurityConfigurerAdapter() {
     @Throws(Exception::class)
     override fun configure(http: HttpSecurity) {
@@ -26,6 +28,7 @@ class OAuth2LoginSecurityConfig1 : WebSecurityConfigurerAdapter() {
 @Configuration
 @EnableWebSecurity
 @Profile("!test")
+@Order(101)
 class OAuth2LoginSecurityConfig() : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity) {
         http

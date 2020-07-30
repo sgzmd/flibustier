@@ -9,10 +9,9 @@ import org.springframework.stereotype.Component
 
 @Component
 class EmailConfig(
-    @Value("\${mail.smtp.username}") val username: String,
-    @Value("\${mail.smtp.password}") val password: String,
-    @Value("\${mail.smtp.host}") val host: String,
-    @Value("\${mail.smtp.port}") val port: Int) {
+    @Value("\${smtp.username}") val username: String,
+    @Value("\${smtp.password}") val password: String,
+    @Value("\${smtp.host}") val host: String) {
 
   val log = LoggerFactory.getLogger(EmailConfig::class.java)
 
@@ -22,14 +21,13 @@ class EmailConfig(
 
     val mailSender = JavaMailSenderImpl()
     mailSender.host = host
-    mailSender.port = port
+    mailSender.port = 25
     mailSender.username = username
     mailSender.password = password
 
     val props = mailSender.javaMailProperties
     props.put("mail.transport.protocol", "smtp")
     props.put("mail.smtp.auth", "true")
-    props.put("mail.smtp.starttls.enable", "true")
     props.put("mail.debug", "true")
 
     return mailSender

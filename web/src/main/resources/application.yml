@@ -26,15 +26,8 @@ server:
 flibusta:
   dburl: "jdbc:sqlite:../data/flibusta.db"
 
-mail:
-  smtp:
-    host: "smtp.gmail.com"
-    port: 587
-    username: ""
-    password: ""
-
-
-email:
-  smtp-domain: "localhost"
-  smtp-username: ""
-  smtp-password: ""
+smtp:
+  host: "smtp.gmail.com"
+  port: 587
+  username: ""
+  password: ""
