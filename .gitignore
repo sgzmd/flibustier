@@ -31,3 +31,4 @@ h2.db.mv.db
 *.db
 .DS_Store
 *.DS_Store
+tmp/
