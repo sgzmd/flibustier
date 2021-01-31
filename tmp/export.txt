@@ -1,0 +1,25 @@
+MariaDB [flibustier]> select concat("https://kro.r-k.co/track?entryId=", entry_id, "&entryType=", IF(entry_type = 0, "SERIES", "AUTHOR")) from tracked_entry;
++--------------------------------------------------------------------------------------------------------------+
+| concat("https://kro.r-k.co/track?entryId=", entry_id, "&entryType=", IF(entry_type = 0, "SERIES", "AUTHOR")) |
++--------------------------------------------------------------------------------------------------------------+
+| https://kro.r-k.co/track?entryId=56313&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=34145&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=31552&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=109170&entryType=AUTHOR                                                     |
+| https://kro.r-k.co/track?entryId=1801&entryType=AUTHOR                                                       |
+| https://kro.r-k.co/track?entryId=2526&entryType=AUTHOR                                                       |
+| https://kro.r-k.co/track?entryId=12192&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=54926&entryType=AUTHOR                                                      |
+| https://kro.r-k.co/track?entryId=181093&entryType=AUTHOR                                                     |
+| https://kro.r-k.co/track?entryId=57394&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=13821&entryType=AUTHOR                                                      |
+| https://kro.r-k.co/track?entryId=47136&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=48489&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=43144&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=49655&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=40913&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=54544&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=29634&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=63065&entryType=SERIES                                                      |
+| https://kro.r-k.co/track?entryId=52396&entryType=AUTHOR
+

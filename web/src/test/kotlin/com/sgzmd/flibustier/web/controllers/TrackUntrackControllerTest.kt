@@ -3,6 +3,7 @@ package com.sgzmd.flibustier.web.controllers
 import com.google.common.truth.Truth
 import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
+import com.sgzmd.flibustier.web.db.entity.Book
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import junit.framework.Assert.assertEquals
 import org.junit.Before
@@ -80,4 +81,18 @@ internal class TrackUntrackControllerTest {
     assertEquals(0, all.count())
   }
 
+  @Test
+  @WithMockUser("testuser")
+  fun testTrackSeries_WasFailingNoId() {
+    val entry = TrackedEntry(FoundEntryType.SERIES, "", 60679, 10, "testuser")
+    val books = mutableListOf<Book>()
+    books.add(Book("Найденыш", 577776))
+    books.add(Book("Притяжение силы", 609214))
+    entry.books = books
+    repo.save(entry)
+    val record = repo.findByEntryId(60679)[0]
+    untrackController.untrack(record.id)
+    val all = repo.findAll()
+    assertEquals(0, all.count())
+  }
 }
