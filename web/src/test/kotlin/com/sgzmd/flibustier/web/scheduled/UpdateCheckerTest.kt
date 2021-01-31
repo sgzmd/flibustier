@@ -3,7 +3,9 @@ package com.sgzmd.flibustier.web.scheduled
 import com.sgzmd.flibustier.web.db.ConnectionProvider
 import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.IEntryUpdateStatusProvider
+import com.sgzmd.flibustier.web.db.IEntryUpdateStatusProvider.UpdateRequired
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
+import com.sgzmd.flibustier.web.db.entity.Book
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import org.junit.Before
 import org.junit.Test
@@ -26,7 +28,7 @@ val testUserNotifier = Mockito.mock(UserNotifier::class.java)
 @Component
 class TestConfig {
   @Bean
-  fun getUserNotifier() : UserNotifier {
+  fun getUserNotifier(): UserNotifier {
     return testUserNotifier
   }
 }
@@ -38,8 +40,10 @@ internal class UpdateCheckerTest {
   @Autowired
   lateinit var repo: TrackedEntryRepository
 
-  @Autowired @Value("\${flibusta.dburl}")
+  @Autowired
+  @Value("\${flibusta.dburl}")
   lateinit var dbUrl: String
+
   @Autowired
   lateinit var connectionProvider: ConnectionProvider
 
@@ -57,13 +61,18 @@ internal class UpdateCheckerTest {
     repo.save(entry)
 
     whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
-        .thenReturn(listOf(IEntryUpdateStatusProvider.UpdateRequired(
-            entry, 3)))
+        .thenReturn(
+            listOf(UpdateRequired(
+                entry,
+                3,
+                newBooks = listOf(Book("TestBook", 1)))))
 
     val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
     updateChecker.checkUpdates()
 
-    verify(testUserNotifier).notifyUser("user_series", "Test Series")
+    verify(testUserNotifier).notifyUser(
+        "user_series",
+        "Updated: Test Series\nTestBook https://flibusta.is/b/1\n")
   }
 
   @Test
@@ -72,12 +81,16 @@ internal class UpdateCheckerTest {
     repo.save(entry)
 
     whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
-            .thenReturn(listOf(IEntryUpdateStatusProvider.UpdateRequired(
-                    entry, 3)))
+        .thenReturn(listOf(UpdateRequired(
+            entry,
+            3,
+            newBooks = listOf(Book("TestBook", 1)))))
 
     val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
     updateChecker.checkUpdates()
 
-    verify(testUserNotifier).notifyUser("user_author", "Test Author")
+    verify(testUserNotifier).notifyUser(
+        "user_author",
+        "Updated: Test Author\nTestBook https://flibusta.is/b/1\n")
   }
 }

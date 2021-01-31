@@ -39,8 +39,19 @@ class UpdateChecker(
     for (userId in updatesByUser.keys) {
       logger.info("Updating user $userId")
       val updates = updatesByUser[userId]
-      val updateText = updates?.map { it.entry.entryName }?.joinToString()
-      updateNotifier.notifyUser(userId, updateText!!)
+
+      var update = ""
+      if (updates != null) {
+        for (upd in updates) {
+          update += "Updated: ${upd.entry.entryName}\n"
+          update += upd.newBooks?.joinToString("\n") { "${it.bookName} https://flibusta.is/b/${it.bookId}" }
+          update += "\n"
+        }
+      }
+
+      if (update.isNotEmpty()) {
+        updateNotifier.notifyUser(userId, update)
+      }
     }
   }
 
