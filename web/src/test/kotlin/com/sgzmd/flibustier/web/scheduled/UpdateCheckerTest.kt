@@ -93,4 +93,26 @@ internal class UpdateCheckerTest {
         "user_author",
         "Updated: Test Author\nTestBook https://flibusta.is/b/1\n")
   }
+
+  @Test
+  fun checkUpdates_Author_MultiBooks() {
+    val entry = TrackedEntry(FoundEntryType.AUTHOR, "Test Author", 1, 2, "user_author")
+    repo.save(entry)
+
+    whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
+        .thenReturn(listOf(UpdateRequired(
+            entry,
+            3,
+            newBooks = listOf(
+                Book("TestBook", 1),
+                Book("TestBook2", 2)
+            ))))
+
+    val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
+    updateChecker.checkUpdates()
+
+    verify(testUserNotifier).notifyUser(
+        "user_author",
+        "Updated: Test Author\nTestBook https://flibusta.is/b/1\nTestBook2 https://flibusta.is/b/2\n")
+  }
 }
