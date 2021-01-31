@@ -1,5 +1,6 @@
 package com.sgzmd.flibustier.web.controllers
 
+import com.google.common.truth.Truth
 import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
@@ -13,6 +14,7 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringRunner
+import com.google.common.truth.Truth.assertThat as assertThat
 
 
 @SpringBootTest
@@ -43,6 +45,7 @@ internal class TrackUntrackControllerTest {
     val entry = records[0]
 
     assertEquals("Унесенный ветром", entry.entryName)
+    assertThat(entry.books).hasSize(8)
   }
 
   @Test
@@ -64,6 +67,7 @@ internal class TrackUntrackControllerTest {
     val entry = records[0]
 
     assertEquals("Николай Александрович Метельский", entry.entryName)
+    assertThat(entry.books).hasSize(8)
   }
 
   @Test

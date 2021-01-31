@@ -1,5 +1,6 @@
 package com.sgzmd.flibustier.web.db
 
+import com.sgzmd.flibustier.web.db.entity.Book
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -8,7 +9,7 @@ import java.sql.PreparedStatement
 
 @Component
 interface IEntryUpdateStatusProvider {
-  data class UpdateRequired(val entry: TrackedEntry, val newCount: Int)
+  data class UpdateRequired(val entry: TrackedEntry, val newCount: Int, val newBooks: List<Book>? = null)
 
   fun checkForUpdates(entries: List<TrackedEntry>) : List<UpdateRequired>
 }

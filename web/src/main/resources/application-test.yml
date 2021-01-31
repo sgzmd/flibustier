@@ -24,6 +24,7 @@ spring:
 
 # spring.jpa.hibernate.ddl-auto
 
+
 dev:
   userId: 1
 
