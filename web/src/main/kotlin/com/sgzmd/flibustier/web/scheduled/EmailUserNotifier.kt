@@ -21,6 +21,7 @@ class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifie
         msg.setTo(userId)
         msg.setSubject("Updates detected by Flibustier")
         msg.setText(updated)
+        msg.setFrom("flibustier@kro.r-k.co")
         mailSender.send(msg)
 
         auditLog.info("Message $msg sent.")
