@@ -13,7 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner
 @SpringBootTest
 @RunWith(SpringRunner::class)
 @ActiveProfiles("test")
-internal class SqlLiteEntryUpdateStatusProviderTest {
+internal class SQLiteEntryUpdateStatusProviderTest {
   @Autowired
   lateinit var connectionProvider: ConnectionProvider
   @Autowired
@@ -23,7 +23,7 @@ internal class SqlLiteEntryUpdateStatusProviderTest {
 
   @Before
   fun setUp() {
-    entryUpdateStatusProvider = SqlLiteEntryUpdateStatusProvider(connectionProvider, repo)
+    entryUpdateStatusProvider = SQLiteEntryUpdateStatusProvider(connectionProvider, repo)
   }
 
   @Test

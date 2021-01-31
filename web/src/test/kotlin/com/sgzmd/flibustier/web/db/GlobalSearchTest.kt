@@ -24,7 +24,7 @@ internal class GlobalSearchTest {
     val rs = stm?.executeQuery("select count(1) as cnt from libbook where 1")
 
     assertTrue(rs?.next()!!)
-    assertEquals(634, rs?.getInt("cnt"))
+    assertEquals(634, rs.getInt("cnt"))
   }
 
   @Test

@@ -39,7 +39,7 @@ internal class TrackUntrackControllerTest {
   @Test
   @WithMockUser("testuser")
   fun testTrack_Series() {
-    val result = trackController.track(34145 as Int, "", FoundEntryType.SERIES)
+    val result = trackController.track(34145, "", FoundEntryType.SERIES)
     assertEquals("/", result.url)
     val records = repo.findByEntryId(34145)
     assertEquals(1, records.size)
@@ -52,7 +52,7 @@ internal class TrackUntrackControllerTest {
   @Test
   @WithMockUser("testuser")
   fun testUntrack_Series() {
-    trackController.track(34145 as Int, "", FoundEntryType.SERIES)
+    trackController.track(34145, "", FoundEntryType.SERIES)
     val record = repo.findByEntryId(34145)[0]
     untrackController.untrack(record.id)
     assertEquals(0, repo.findAll().count())
@@ -61,7 +61,7 @@ internal class TrackUntrackControllerTest {
   @Test
   @WithMockUser("testuser")
   fun testTrack_Author() {
-    val result = trackController.track(109170 as Int, "", FoundEntryType.AUTHOR)
+    val result = trackController.track(109170, "", FoundEntryType.AUTHOR)
     assertEquals("/", result.url)
     val records = repo.findByEntryId(109170)
     assertEquals(1, records.size)

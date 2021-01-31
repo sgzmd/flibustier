@@ -23,9 +23,7 @@ import java.util.*
 
 
 @SpringBootTest
-class FlibustierApplicationTests {
-
-}
+class FlibustierApplicationTests
 
 @Configuration
 @Profile("test")

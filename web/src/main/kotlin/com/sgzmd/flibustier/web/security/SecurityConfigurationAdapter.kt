@@ -29,7 +29,7 @@ class OAuth2LoginSecurityConfig1 : WebSecurityConfigurerAdapter() {
 @EnableWebSecurity
 @Profile("!test")
 @Order(101)
-class OAuth2LoginSecurityConfig() : WebSecurityConfigurerAdapter() {
+class OAuth2LoginSecurityConfig : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity) {
         http
             .csrf().disable()

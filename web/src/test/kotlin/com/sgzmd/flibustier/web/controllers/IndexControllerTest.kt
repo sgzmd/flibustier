@@ -22,7 +22,7 @@ import org.springframework.web.context.WebApplicationContext
 @ActiveProfiles("test")
 @SpringJUnitWebConfig
 @SpringBootTest
-class IndexControllerTest() {
+class IndexControllerTest {
   @Autowired lateinit var wac: WebApplicationContext
 
   lateinit var mockMvc: MockMvc

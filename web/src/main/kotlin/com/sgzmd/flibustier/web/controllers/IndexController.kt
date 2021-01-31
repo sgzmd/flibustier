@@ -23,7 +23,7 @@ class IndexController(
         model.addAttribute("username", authFacade.getUserId())
 
         if (searchTerm != null && searchTerm.length > 1) {
-            val results = globalSearch.search(searchTerm!!)
+            val results = globalSearch.search(searchTerm)
             // empty results should be handled gracefully with an alert.
             model.addAttribute("searchResults", results)
         }

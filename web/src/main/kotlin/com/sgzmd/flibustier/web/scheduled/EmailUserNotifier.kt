@@ -30,7 +30,7 @@ class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifie
 
 @Component
 @Profile("dev")
-class FakeUserNotifier() : UserNotifier {
+class FakeUserNotifier : UserNotifier {
     override fun notifyUser(userId: String, updated: String) {
 
     }

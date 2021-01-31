@@ -16,8 +16,8 @@ class ConnectionProvider(@Value("\${flibusta.dburl}") dbUrl: String) {
     private var _connection: Connection? = null
     var connection : Connection? = null
     @Synchronized get() {
-        Class.forName("org.sqlite.JDBC");
-        if (_connection == null) {
+        Class.forName("org.sqlite.JDBC")
+      if (_connection == null) {
             logger.info("Opening connection to $_connectionUrl")
             _connection = DriverManager.getConnection(_connectionUrl)
         }
