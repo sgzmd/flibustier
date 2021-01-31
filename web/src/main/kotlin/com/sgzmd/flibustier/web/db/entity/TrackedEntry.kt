@@ -5,7 +5,7 @@ import javax.persistence.*
 
 @Entity
 @Table(name = "books")
-class Book(val bookName: String?, val bookId: Int?) {
+data class Book(val bookName: String?, val bookId: Int?) {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var bookEntityId: Long = 0
 

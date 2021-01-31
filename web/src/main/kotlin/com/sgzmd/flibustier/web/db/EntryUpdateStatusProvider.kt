@@ -1,5 +1,6 @@
 package com.sgzmd.flibustier.web.db
 
+import com.google.common.annotations.VisibleForTesting
 import com.sgzmd.flibustier.web.db.entity.Book
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import org.slf4j.LoggerFactory
@@ -62,6 +63,33 @@ class SQLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvider
     return result
   }
 
+  @VisibleForTesting
+  fun getNewBooks(entry: TrackedEntry): List<Book> {
+    // TODO: switch to proper prepared statements
+    val stm = when (entry.entryType) {
+      FoundEntryType.AUTHOR -> connectionProvider.connection?.prepareStatement(
+          "select b.BookId, b.Title from libbook b, libavtor a where b.BookId = a.BookId and a.AvtorId = ?")
+      FoundEntryType.SERIES -> connectionProvider.connection?.prepareStatement(
+          "select b.BookId, b.Title from libbook b, libseq s where s.BookId = b.BookId and s.SeqId = ?")
+      else -> throw IllegalArgumentException("Can only check updates for series and authors")
+    }
+
+    stm?.setInt(1, entry.entryId!!)
+
+    val rs = stm?.executeQuery()!! // if ExecuteQuery returns null, things are terribly wrong
+
+    val existingBooks = entry.books.groupBy { it.bookId }
+    val newBooks = mutableListOf<Book>()
+    while (rs.next()) {
+      val b = Book(rs.getString("Title"), rs.getInt("BookId"))
+      if (!existingBooks.containsKey(b.bookId)) {
+        newBooks.add(b)
+      }
+    }
+
+    return newBooks
+  }
+
   private fun processEntriesOfType(
           group: List<TrackedEntry>?,
           type: FoundEntryType,
@@ -83,8 +111,16 @@ class SQLiteEntryUpdateStatusProvider(val connectionProvider: ConnectionProvider
       auditLog.info("For type=$type and entryId=$entryId ($entryName) there are ${toBeUpdated.size} records to be updated")
 
       toBeUpdated.forEach {
-        result.add(IEntryUpdateStatusProvider.UpdateRequired(it, newCount))
+        val newBooks = getNewBooks(it)
+        result.add(IEntryUpdateStatusProvider.UpdateRequired(it, newCount, newBooks = newBooks))
         it.numEntries = newCount
+
+        // Now let's produce final list of all new books associated with the entry
+        val allBooks = mutableListOf<Book>()
+        allBooks.addAll(it.books)
+        allBooks.addAll(newBooks)
+        it.books = allBooks
+
         repo.save(it)
       }
     }
