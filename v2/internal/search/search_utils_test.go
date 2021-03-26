@@ -63,4 +63,5 @@ func TestSearch(t *testing.T) {
 	result, err := Search(kvRoot, q)
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
+	assert.Equal(t, "34145", result.foundSeqs[0].FlibustaSequenceId)
 }

@@ -221,7 +221,7 @@ func genericMatch(query searchQuery, bytes []byte, msg proto.Message, extractor 
 	haystacks := extractor(msg)
 	for _, needle := range query.searchTerms {
 		for _, hs := range haystacks {
-			match, _ := regexp.MatchString(needle, hs)
+			match, _ := regexp.MatchString(strings.ToLower(needle), strings.ToLower(hs))
 			if match {
 				return true, msg
 			}
