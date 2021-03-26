@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"sort"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3" // Import go-sqlite3 library
@@ -78,7 +77,7 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool, extractO
 	extractOnlySeqs := make(map[string]bool)
 	extractOnlyBooks := make(map[string]bool)
 	extractOnlyAuthors := make(map[string]bool)
-	
+
 	filteringEnabled := false
 	if extractOnlySeq != nil {
 		authors, books := getAuthorsAndBooksForSequences(extractOnlySeq, db)
@@ -277,7 +276,7 @@ func openSqlite3Db(sqlitePath *string) *sql.DB {
 }
 
 // Extracts book and author IDs corresponding to passed list of sequence ids
-// Returns sorted slices of author and book IDs
+// Returns slices of author and book IDs
 func getAuthorsAndBooksForSequences(sequences []string, db *sql.DB) ([]string, []string) {
 	const SQL = `
 		select seq.SeqId,
@@ -313,9 +312,6 @@ func getAuthorsAndBooksForSequences(sequences []string, db *sql.DB) ([]string, [
 		authorsResult = append(authorsResult, strings.Split(authors, ",")...)
 		booksResult = append(booksResult, strings.Split(books, ",")...)
 	}
-
-	sort.Strings(authorsResult)
-	sort.Strings(booksResult)
 
 	return authorsResult, booksResult
 }
