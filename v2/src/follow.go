@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+
+	"flibustier_v2/src/search"
 )
 
 /*
@@ -21,7 +23,7 @@ func main() {
 
 	flag.Parse()
 
-	searchBooks(kvRoot, []string{*what})
+	search.searchBooks(kvRoot, []string{*what})
 
 	fmt.Printf("root=%s, what=%s", *kvRoot, *what)
 }

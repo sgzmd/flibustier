@@ -4,6 +4,8 @@ import (
 	"flag"
 	"log"
 	"strings"
+
+	search2 "flibustier_v2/src/search"
 )
 
 func main() {
@@ -20,9 +22,9 @@ func main() {
 	switch search[0] {
 	case "book":
 		terms := []string{search[1]}
-		searchBooks(kvRoot, terms)
+		search2.searchBooks(kvRoot, terms)
 	case "seq":
-		searchSeq(kvRoot, search[1])
+		search2.searchSeq(kvRoot, search[1])
 	default:
 		log.Printf("Search %s not supported", search[0])
 	}
