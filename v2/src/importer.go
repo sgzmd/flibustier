@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"flibustier_v2/src/com.sigizmund/flibustier"
+	"flibustier_v2/src/consts"
 )
 
 const SQL_AUTHORS = `
@@ -60,7 +61,7 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool) {
 		os.Exit(1)
 	}
 
-	authorsKvPath := path.Join(*kvRoot, AUTHORS_KV)
+	authorsKvPath := path.Join(*kvRoot, consts.AUTHORS_KV)
 	authorsKv, _ := bitcask.Open(authorsKvPath)
 	defer authorsKv.Close()
 
@@ -108,7 +109,7 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool) {
 	}
 	defer booksQuery.Close()
 
-	booksKvPath := path.Join(*kvRoot, BOOKS_KV)
+	booksKvPath := path.Join(*kvRoot, consts.BOOKS_KV)
 	booksKv, _ := bitcask.Open(booksKvPath)
 	defer booksKv.Close()
 
