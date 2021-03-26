@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"sort"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3" // Import go-sqlite3 library
@@ -47,6 +48,12 @@ group by seq.SeqId, sn.SeqName
 func main() {
 	sqlitePath := flag.String("sqlite_db_path", "./flibusta.db", "Path to SQLite3 database dump")
 	kvRoot := flag.String("kv_root", "./kv", "Root of data storage directory")
+
+	extractOnlySeq := flag.String(
+		"extract_seq",
+		"",
+		"Extracts only these seqs, comma-separated, for testing")
+
 	checkIntegrity := flag.Bool(
 		"check_integrity",
 		true,
@@ -54,16 +61,38 @@ func main() {
 
 	flag.Parse()
 
-	run_main(sqlitePath, kvRoot, checkIntegrity)
+	var extractSequences []string
+	if *extractOnlySeq == "" {
+		extractSequences = nil
+	} else {
+		extractSequences = strings.Split(*extractOnlySeq, ",")
+	}
+
+	run_main(sqlitePath, kvRoot, checkIntegrity, extractSequences)
 }
 
-func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool) {
-	db, err := sql.Open("sqlite3", *sqlitePath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to open database: %s", err)
-		os.Exit(1)
-	}
+func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool, extractOnlySeq []string) {
+	db := openSqlite3Db(sqlitePath)
 	defer db.Close()
+
+	extractOnlySeqs := make(map[string]bool)
+	extractOnlyBooks := make(map[string]bool)
+	extractOnlyAuthors := make(map[string]bool)
+	
+	filteringEnabled := false
+	if extractOnlySeq != nil {
+		authors, books := getAuthorsAndBooksForSequences(extractOnlySeq, db)
+		for _,author := range authors {
+			extractOnlyAuthors[author] = true
+		}
+		for _, book := range books {
+			extractOnlyBooks[book] = true
+		}
+		for _, seq := range extractOnlySeq {
+			extractOnlySeqs[seq] = true
+		}
+		filteringEnabled = true
+	}
 
 	q, err := db.Query(SQL_AUTHORS)
 
@@ -88,6 +117,15 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool) {
 		}
 
 		authorIdStr := fmt.Sprint(authorId)
+
+		if filteringEnabled {
+			if !extractOnlyAuthors[authorIdStr] {
+				continue
+			} else {
+				log.Printf("Test dataset creation mode, including author %s", authorIdStr)
+			}
+		}
+
 		author := flibustier.Author{
 			FirstName:        firstName,
 			MiddleName:       middleName,
@@ -137,6 +175,14 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool) {
 		authorsArr := strings.Split(authors, ",")
 		bookIdStr := fmt.Sprint(bookId)
 
+		if filteringEnabled {
+			if !extractOnlyBooks[bookIdStr] {
+				continue
+			} else {
+				log.Printf("Test dataset creation mode, including book %s", bookIdStr)
+			}
+		}
+
 		_, err = booksKv.Get([]byte(bookIdStr))
 		if err != nil {
 			book := flibustier.Book{
@@ -145,15 +191,17 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool) {
 				Title:            title,
 			}
 
-			// Sanity checking that all authors are available in the database
-			for _, a := range authorsArr {
-				tmpAuthor := flibustier.Author{}
-				bytes, err := authorsKv.Get([]byte(a))
-				if err != nil {
-					log.Panicf("Couldn't get author data for author %s", a)
-				}
-				if proto.Unmarshal(bytes, &tmpAuthor) != nil {
-					log.Panicf("Couldn't unmarshal data for author %s", a)
+			if *checkIntegrity {
+				// Sanity checking that all authors are available in the database
+				for _, a := range authorsArr {
+					tmpAuthor := flibustier.Author{}
+					bytes, err := authorsKv.Get([]byte(a))
+					if err != nil {
+						log.Panicf("Couldn't get author data for author %s", a)
+					}
+					if proto.Unmarshal(bytes, &tmpAuthor) != nil {
+						log.Panicf("Couldn't unmarshal data for author %s", a)
+					}
 				}
 			}
 
@@ -194,13 +242,22 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool) {
 		}
 
 		seqIdStr := fmt.Sprint(seqId)
+
+		if filteringEnabled {
+			if !extractOnlySeqs[seqIdStr] {
+				continue
+			} else {
+				log.Printf("Test dataset creation mode, including seq %s", seqIdStr)
+			}
+		}
+
 		bookIdArr := strings.Split(bookIds, ",")
 		seq := flibustier.Sequence{
 			FlibustaSequenceId: seqIdStr,
 			SequenceName:       seqName,
 			BookId:             bookIdArr,
 		}
-		marshalled,err := proto.Marshal(&seq)
+		marshalled, err := proto.Marshal(&seq)
 		if err != nil {
 			log.Panic("Couldn't marshall proto", err)
 		}
@@ -209,4 +266,56 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool) {
 	}
 
 	log.Printf("Imported %d sequences, now done.", counter)
+}
+
+func openSqlite3Db(sqlitePath *string) *sql.DB {
+	db, err := sql.Open("sqlite3", *sqlitePath)
+	if err != nil {
+		log.Panic("Couldn't open database", err)
+	}
+	return db
+}
+
+// Extracts book and author IDs corresponding to passed list of sequence ids
+// Returns sorted slices of author and book IDs
+func getAuthorsAndBooksForSequences(sequences []string, db *sql.DB) ([]string, []string) {
+	const SQL = `
+		select seq.SeqId,
+			   GROUP_CONCAT(DISTINCT seq.BookId)     books,
+			   GROUP_CONCAT(DISTINCT author.AvtorId) authors
+		from libseq seq,
+			 libseqname sn,
+			 libbook book,
+			 libavtor author
+		where seq.SeqId = sn.SeqId
+		  and book.BookId = seq.BookId
+		  and book.Deleted != '1'
+		  and author.BookId = book.BookId
+		  and seq.SeqId IN (%s)
+		group by seq.SeqId, sn.SeqName;
+	`
+
+	ids := strings.Join(sequences, ",")
+	q, err := db.Query(fmt.Sprintf(SQL, ids))
+	if err != nil {
+		log.Panic(err)
+	}
+
+	var authorsResult []string
+	var booksResult []string
+	for q.Next() {
+		var seqId int
+		var books, authors string
+
+		q.Scan(&seqId, &books, &authors)
+		log.Printf("seqId=%d books=%s authors=%s", seqId, books, authors)
+
+		authorsResult = append(authorsResult, strings.Split(authors, ",")...)
+		booksResult = append(booksResult, strings.Split(books, ",")...)
+	}
+
+	sort.Strings(authorsResult)
+	sort.Strings(booksResult)
+
+	return authorsResult, booksResult
 }

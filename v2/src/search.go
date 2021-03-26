@@ -27,7 +27,8 @@ func main() {
 
 	switch search[0] {
 	case "book":
-		searchBooks(kvRoot, search[1])
+		terms := []string{search[1]}
+		searchBooks(kvRoot, terms)
 	case "seq":
 		searchSeq(kvRoot, search[1])
 	default:
@@ -35,7 +36,7 @@ func main() {
 	}
 }
 
-func searchBooks(kvRoot *string, searchTerm string) {
+func searchBooks(kvRoot *string, searchTerm []string) {
 	booksKv, err := bitcask.Open(path.Join(*kvRoot, consts.BOOKS_KV))
 	defer booksKv.Close()
 
@@ -48,9 +49,11 @@ func searchBooks(kvRoot *string, searchTerm string) {
 		book := flibustier.Book{}
 		if proto.Unmarshal(bytes, &book) == nil {
 			// Parsed OK
-			match, _ := regexp.MatchString(searchTerm, strings.ToLower(book.Title))
-			if match {
-				log.Printf("Found a matching book: %s", book.Title)
+			for _, term := range searchTerm {
+				match, _ := regexp.MatchString(term, strings.ToLower(book.Title))
+				if match {
+					log.Printf("Found a matching book: %s", book.Title)
+				}
 			}
 		}
 
@@ -67,7 +70,7 @@ func searchSeq(kvRoot *string, searchTerm string) {
 	}
 
 	seqKv.Scan([]byte(""), func(key []byte) error {
-		bytes,_ := seqKv.Get(key)
+		bytes, _ := seqKv.Get(key)
 		seq := flibustier.Sequence{}
 		if proto.Unmarshal(bytes, &seq) == nil {
 			match, _ := regexp.MatchString(searchTerm, strings.ToLower(seq.SequenceName))
