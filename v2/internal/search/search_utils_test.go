@@ -53,7 +53,7 @@ func TestMatchBook(t *testing.T) {
 	assert.True(t, proto.Equal(&book, msg))
 }
 
-func TestSearch(t *testing.T) {
+func TestSearchSeq(t *testing.T) {
 	const kvRoot = "./test-kv"
 	q := MakeSearchQuery()
 	q.searchFor = SearchSeq
@@ -64,4 +64,17 @@ func TestSearch(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, "34145", result.foundSeqs[0].FlibustaSequenceId)
+}
+
+func TestSearchAuth(t *testing.T) {
+	const kvRoot = "./test-kv"
+	q := MakeSearchQuery()
+	q.searchFor = SearchAuthor
+	q.searchType = SearchByName
+	q.searchTerms = []string {"метель"}
+
+	result, err := Search(kvRoot, q)
+	assert.Nil(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, "109170", result.foundAuthors[0].FlibustaAuthorId)
 }

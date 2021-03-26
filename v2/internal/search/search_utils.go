@@ -2,7 +2,6 @@ package search
 
 import (
 	"fmt"
-	"log"
 	"path"
 	"regexp"
 	"strings"
@@ -44,7 +43,6 @@ type searchResult struct {
 	foundAuthors []messages.Author
 	foundSeqs    []messages.Sequence
 }
-
 
 func MakeSearchQuery() searchQuery {
 	return searchQuery{
@@ -126,57 +124,44 @@ func ParseQuery(term string, termType SearchType) (searchQuery, error) {
 }
 
 func Search(kvRoot string, query searchQuery) (searchResult, error) {
-	var kv *bitcask.Bitcask
-	var err error
 	switch query.searchFor {
 	case SearchAuthor:
-		kv, err = bitcask.Open(path.Join(kvRoot, consts.AUTHORS_KV))
+		return searchAuthor(kvRoot, query)
 	case SearchBook:
-		kv, err = bitcask.Open(path.Join(kvRoot, consts.BOOKS_KV))
+		return searchBook(kvRoot, query)
 	case SearchSeq:
-		kv, err = bitcask.Open(path.Join(kvRoot, consts.SEQ_KV))
+		return searchSeq(kvRoot, query)
+	default:
+		return MakeSearchResult(), errors.Errorf("Unsupported searchFor=%s", query.searchFor)
 	}
+}
+
+func searchSeq(kvRoot string, query searchQuery) (searchResult, error) {
+	result := MakeSearchResult()
+
+	kv, err := bitcask.Open(path.Join(kvRoot, consts.SEQ_KV))
 	defer kv.Close()
 	if err != nil {
-		return MakeSearchResult(), err
+		return result, err
 	}
 
-	result := MakeSearchResult()
 	kv.Scan([]byte(""), func(key []byte) error {
+		seq := messages.Sequence{}
+		bytes, err := kv.Get(key)
+		if err != nil {
+			return err
+		}
+		proto.Unmarshal(bytes, &seq)
 		if query.searchType == SearchById {
 			if searchTermPresent(query, string(key)) {
-				// TODO: handle this situation
+				result.foundSeqs = append(result.foundSeqs, seq)
 			}
 		} else {
-			// Means we are not searching for IDs and have to iterate
-			bytes, _ := kv.Get(key)
-			switch query.searchFor {
-			case SearchBook:
-				foundMatch, msg := matchBook(bytes, query)
-				if foundMatch {
-					b := messages.Book{}
-					proto.Merge(&b, msg)
-					result.foundBooks = append(result.foundBooks, b)
-				}
-
-			case SearchAuthor:
-				foundMatch, msg := matchAuthor(bytes, query)
-				if foundMatch {
-					a := messages.Author{}
-					proto.Merge(&a, msg)
-					result.foundAuthors = append(result.foundAuthors, a)
-				}
-
-			case SearchSeq:
-				foundMatch, msg := matchSeq(bytes, query)
-				if foundMatch {
-					s := messages.Sequence{}
-					proto.Merge(&s, msg)
-					result.foundSeqs = append(result.foundSeqs, s)
-				}
-
-			default:
-				log.Panicf("Unknown match type: %s", query.searchFor)
+			foundMatch, msg := matchSeq(bytes, query)
+			if foundMatch {
+				s := messages.Sequence{}
+				proto.Merge(&s, msg)
+				result.foundSeqs = append(result.foundSeqs, s)
 			}
 		}
 
@@ -186,29 +171,74 @@ func Search(kvRoot string, query searchQuery) (searchResult, error) {
 	return result, nil
 }
 
-func searchBooks(kvRoot *string, searchTerm []string) {
-	booksKv, err := bitcask.Open(path.Join(*kvRoot, consts.BOOKS_KV))
-	defer booksKv.Close()
+func searchBook(kvRoot string, query searchQuery) (searchResult, error) {
+	result := MakeSearchResult()
 
+	kv, err := bitcask.Open(path.Join(kvRoot, consts.BOOKS_KV))
+	defer kv.Close()
 	if err != nil {
-		log.Panic(err)
+		return result, err
 	}
 
-	booksKv.Scan([]byte(""), func(key []byte) error {
-		bytes, _ := booksKv.Get(key)
+	kv.Scan([]byte(""), func(key []byte) error {
 		book := messages.Book{}
-		if proto.Unmarshal(bytes, &book) == nil {
-			// Parsed OK
-			for _, term := range searchTerm {
-				match, _ := regexp.MatchString(term, strings.ToLower(book.Title))
-				if match {
-					log.Printf("Found a matching book: %s", book.Title)
-				}
+		bytes, err := kv.Get(key)
+		if err != nil {
+			return err
+		}
+		proto.Unmarshal(bytes, &book)
+		if query.searchType == SearchById {
+			if searchTermPresent(query, string(key)) {
+				result.foundBooks = append(result.foundBooks, book)
+			}
+		} else {
+			foundMatch, msg := matchBook(bytes, query)
+			if foundMatch {
+				b := messages.Book{}
+				proto.Merge(&b, msg)
+				result.foundBooks = append(result.foundBooks, b)
 			}
 		}
 
 		return nil
 	})
+
+	return result, nil
+}
+
+func searchAuthor(kvRoot string, query searchQuery) (searchResult, error) {
+	result := MakeSearchResult()
+
+	kv, err := bitcask.Open(path.Join(kvRoot, consts.AUTHORS_KV))
+	defer kv.Close()
+	if err != nil {
+		return result, err
+	}
+
+	kv.Scan([]byte(""), func(key []byte) error {
+		author := messages.Author{}
+		bytes, err := kv.Get(key)
+		if err != nil {
+			return err
+		}
+		proto.Unmarshal(bytes, &author)
+		if query.searchType == SearchById {
+			if searchTermPresent(query, string(key)) {
+				result.foundAuthors = append(result.foundAuthors, author)
+			}
+		} else {
+			foundMatch, msg := matchAuthor(bytes, query)
+			if foundMatch {
+				a := messages.Author{}
+				proto.Merge(&a, msg)
+				result.foundAuthors = append(result.foundAuthors, a)
+			}
+		}
+
+		return nil
+	})
+
+	return result, nil
 }
 
 type extractHaystacks func(msg proto.Message) []string
@@ -255,27 +285,5 @@ func matchSeq(bytes []byte, query searchQuery) (bool, proto.Message) {
 		proto.Merge(&seq, msg)
 
 		return []string{seq.SequenceName}
-	})
-}
-
-func searchSeq(kvRoot *string, searchTerm string) {
-	seqKv, err := bitcask.Open(path.Join(*kvRoot, consts.SEQ_KV))
-	defer seqKv.Close()
-
-	if err != nil {
-		log.Panic(err)
-	}
-
-	seqKv.Scan([]byte(""), func(key []byte) error {
-		bytes, _ := seqKv.Get(key)
-		seq := messages.Sequence{}
-		if proto.Unmarshal(bytes, &seq) == nil {
-			match, _ := regexp.MatchString(searchTerm, strings.ToLower(seq.SequenceName))
-			if match {
-				log.Printf("SeqId: %s\tSeqName: %s", key, seq.SequenceName)
-			}
-		}
-
-		return nil
 	})
 }
