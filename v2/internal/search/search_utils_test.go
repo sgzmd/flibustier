@@ -9,6 +9,7 @@ import (
 	"flibustier_v2/internal/messages"
 )
 
+// ./importer -extract_seq 34145,432,34360 -kv_root=./test-kv
 func TestMakeSearchQuery(t *testing.T) {
 	q := MakeSearchQuery()
 
