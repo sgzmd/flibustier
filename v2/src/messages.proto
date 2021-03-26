@@ -15,3 +15,9 @@ message Book {
   repeated string flibusta_author_id = 2;
   string title = 3;
 }
+
+message Sequence {
+  string flibusta_sequence_id = 1;
+  string sequence_name = 2;
+  repeated string book_id = 3;
+}

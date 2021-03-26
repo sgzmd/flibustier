@@ -33,6 +33,17 @@ const SQL_BOOKS = `
 		group by book.BookId
 `
 
+const SQL_SEQS = `
+select seq.SeqId, sn.SeqName, GROUP_CONCAT(DISTINCT seq.BookId)
+from libseq seq,
+     libseqname sn,
+     libbook book
+where seq.SeqId = sn.SeqId
+  and book.BookId = seq.BookId
+  and book.Deleted != '1'
+group by seq.SeqId, sn.SeqName
+`
+
 func main() {
 	sqlitePath := flag.String("sqlite_db_path", "./flibusta.db", "Path to SQLite3 database dump")
 	kvRoot := flag.String("kv_root", "./kv", "Root of data storage directory")
@@ -159,5 +170,43 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool) {
 		}
 	}
 
-	log.Printf("Imported %d books", counter)
+	log.Printf("Imported %d books, stage 3: importing sequences", counter)
+	seqQuery, seqErr := db.Query(SQL_SEQS)
+	if seqErr != nil {
+		log.Panic(seqErr)
+	}
+	defer seqQuery.Close()
+
+	seqKvPath := path.Join(*kvRoot, consts.SEQ_KV)
+	seqKv, err := bitcask.Open(seqKvPath)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer seqKv.Close()
+
+	counter = 0
+	for seqQuery.Next() {
+		var seqId int32
+		var seqName, bookIds string
+
+		if e := seqQuery.Scan(&seqId, &seqName, &bookIds); e != nil {
+			log.Panic("Failed to unpack SQL record", e)
+		}
+
+		seqIdStr := fmt.Sprint(seqId)
+		bookIdArr := strings.Split(bookIds, ",")
+		seq := flibustier.Sequence{
+			FlibustaSequenceId: seqIdStr,
+			SequenceName:       seqName,
+			BookId:             bookIdArr,
+		}
+		marshalled,err := proto.Marshal(&seq)
+		if err != nil {
+			log.Panic("Couldn't marshall proto", err)
+		}
+		seqKv.Put([]byte(seqIdStr), marshalled)
+		counter++
+	}
+
+	log.Printf("Imported %d sequences, now done.", counter)
 }
