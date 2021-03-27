@@ -2,6 +2,8 @@ package search
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -39,9 +41,9 @@ type searchQuery struct {
 }
 
 type searchResult struct {
-	foundBooks   []messages.Book
-	foundAuthors []messages.Author
-	foundSeqs    []messages.Sequence
+	FoundBooks   []messages.Book
+	FoundAuthors []messages.Author
+	FoundSeqs    []messages.Sequence
 }
 
 func MakeSearchQuery() searchQuery {
@@ -53,9 +55,9 @@ func MakeSearchQuery() searchQuery {
 
 func MakeSearchResult() searchResult {
 	return searchResult{
-		foundBooks:   []messages.Book{},
-		foundAuthors: []messages.Author{},
-		foundSeqs:    []messages.Sequence{},
+		FoundBooks:   []messages.Book{},
+		FoundAuthors: []messages.Author{},
+		FoundSeqs:    []messages.Sequence{},
 	}
 }
 
@@ -139,7 +141,12 @@ func Search(kvRoot string, query searchQuery) (searchResult, error) {
 func searchSeq(kvRoot string, query searchQuery) (searchResult, error) {
 	result := MakeSearchResult()
 
-	kv, err := bitcask.Open(path.Join(kvRoot, consts.SEQ_KV))
+	kvpath := path.Join(kvRoot, consts.SEQ_KV)
+	if _, err := os.Stat(kvpath); os.IsNotExist(err) {
+		log.Panicf("KV file %s doesn't exist", kvpath)
+	}
+
+	kv, err := bitcask.Open(kvpath)
 	defer kv.Close()
 	if err != nil {
 		return result, err
@@ -154,14 +161,14 @@ func searchSeq(kvRoot string, query searchQuery) (searchResult, error) {
 		proto.Unmarshal(bytes, &seq)
 		if query.searchType == SearchById {
 			if searchTermPresent(query, string(key)) {
-				result.foundSeqs = append(result.foundSeqs, seq)
+				result.FoundSeqs = append(result.FoundSeqs, seq)
 			}
 		} else {
 			foundMatch, msg := matchSeq(bytes, query)
 			if foundMatch {
 				s := messages.Sequence{}
 				proto.Merge(&s, msg)
-				result.foundSeqs = append(result.foundSeqs, s)
+				result.FoundSeqs = append(result.FoundSeqs, s)
 			}
 		}
 
@@ -189,14 +196,14 @@ func searchBook(kvRoot string, query searchQuery) (searchResult, error) {
 		proto.Unmarshal(bytes, &book)
 		if query.searchType == SearchById {
 			if searchTermPresent(query, string(key)) {
-				result.foundBooks = append(result.foundBooks, book)
+				result.FoundBooks = append(result.FoundBooks, book)
 			}
 		} else {
 			foundMatch, msg := matchBook(bytes, query)
 			if foundMatch {
 				b := messages.Book{}
 				proto.Merge(&b, msg)
-				result.foundBooks = append(result.foundBooks, b)
+				result.FoundBooks = append(result.FoundBooks, b)
 			}
 		}
 
@@ -224,14 +231,14 @@ func searchAuthor(kvRoot string, query searchQuery) (searchResult, error) {
 		proto.Unmarshal(bytes, &author)
 		if query.searchType == SearchById {
 			if searchTermPresent(query, string(key)) {
-				result.foundAuthors = append(result.foundAuthors, author)
+				result.FoundAuthors = append(result.FoundAuthors, author)
 			}
 		} else {
 			foundMatch, msg := matchAuthor(bytes, query)
 			if foundMatch {
 				a := messages.Author{}
 				proto.Merge(&a, msg)
-				result.foundAuthors = append(result.foundAuthors, a)
+				result.FoundAuthors = append(result.FoundAuthors, a)
 			}
 		}
 
