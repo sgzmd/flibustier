@@ -51,12 +51,14 @@ func main() {
 	extractOnlySeq := flag.String(
 		"extract_seq",
 		"",
-		"Extracts only these seqs, comma-separated, for testing")
+		"Extracts only these seqs, comma-separated, for testing",
+	)
 
 	checkIntegrity := flag.Bool(
 		"check_integrity",
 		true,
-		"Verify that all authors were imported correctly for books")
+		"Verify that all authors were imported correctly for books",
+	)
 
 	flag.Parse()
 
@@ -81,7 +83,7 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool, extractO
 	filteringEnabled := false
 	if extractOnlySeq != nil {
 		authors, books := getAuthorsAndBooksForSequences(extractOnlySeq, db)
-		for _,author := range authors {
+		for _, author := range authors {
 			extractOnlyAuthors[author] = true
 		}
 		for _, book := range books {
@@ -182,34 +184,31 @@ func run_main(sqlitePath *string, kvRoot *string, checkIntegrity *bool, extractO
 			}
 		}
 
-		_, err = booksKv.Get([]byte(bookIdStr))
-		if err != nil {
-			book := messages.Book{
-				FlibustaBookId:   bookIdStr,
-				FlibustaAuthorId: authorsArr,
-				Title:            title,
-			}
+		book := messages.Book{
+			FlibustaBookId:   bookIdStr,
+			FlibustaAuthorId: authorsArr,
+			Title:            title,
+		}
 
-			if *checkIntegrity {
-				// Sanity checking that all authors are available in the database
-				for _, a := range authorsArr {
-					tmpAuthor := messages.Author{}
-					bytes, err := authorsKv.Get([]byte(a))
-					if err != nil {
-						log.Panicf("Couldn't get author data for author %s", a)
-					}
-					if proto.Unmarshal(bytes, &tmpAuthor) != nil {
-						log.Panicf("Couldn't unmarshal data for author %s", a)
-					}
+		if *checkIntegrity {
+			// Sanity checking that all authors are available in the database
+			for _, a := range authorsArr {
+				tmpAuthor := messages.Author{}
+				bytes, err := authorsKv.Get([]byte(a))
+				if err != nil {
+					log.Panicf("Couldn't get author data for author %s", a)
+				}
+				if proto.Unmarshal(bytes, &tmpAuthor) != nil {
+					log.Panicf("Couldn't unmarshal data for author %s", a)
 				}
 			}
-
-			bookBytes, err := proto.Marshal(&book)
-			if err != nil {
-				panic(err)
-			}
-			booksKv.Put([]byte(bookIdStr), bookBytes)
 		}
+
+		bookBytes, err := proto.Marshal(&book)
+		if err != nil {
+			panic(err)
+		}
+		booksKv.Put([]byte(bookIdStr), bookBytes)
 
 		counter++
 		if counter%1000 == 0 {

@@ -9,6 +9,8 @@ import (
 	"flibustier_v2/internal/messages"
 )
 
+const kvRoot = "../../test-kv"
+
 // ./importer -extract_seq 34145,432,34360 -kv_root=./test-kv
 func TestMakeSearchQuery(t *testing.T) {
 	q := MakeSearchQuery()
@@ -54,7 +56,6 @@ func TestMatchBook(t *testing.T) {
 }
 
 func TestSearchSeq(t *testing.T) {
-	const kvRoot = "../../test-kv"
 	q := MakeSearchQuery()
 	q.searchFor = SearchSeq
 	q.searchType = SearchByName
@@ -67,7 +68,6 @@ func TestSearchSeq(t *testing.T) {
 }
 
 func TestSearchAuth(t *testing.T) {
-	const kvRoot = "../../test-kv"
 	q := MakeSearchQuery()
 	q.searchFor = SearchAuthor
 	q.searchType = SearchByName
@@ -77,4 +77,15 @@ func TestSearchAuth(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, "109170", result.FoundAuthors[0].FlibustaAuthorId)
+}
+
+func TestSearchById(t *testing.T) {
+	q := MakeSearchQuery()
+	q.searchFor = SearchBook
+	q.searchType = SearchById
+	q.searchTerms = []string {"526369"}
+
+	result, err := Search(kvRoot, q)
+	assert.Nil(t, err)
+	assert.Equal(t, "Запах Сумрака", result.FoundBooks[0].Title)
 }
