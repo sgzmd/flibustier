@@ -28,10 +28,6 @@ const (
 	SearchSeq    SearchFor = "SearchSeq"
 )
 
-const searchPrefixAuthor = "author"
-const searchPrefixBook = "book"
-const searchPrefixSeq = "seq"
-
 // Not exported
 type searchQuery struct {
 	searchType SearchType
@@ -112,11 +108,11 @@ func ParseQuery(term string, termType SearchType) (searchQuery, error) {
 	query.searchTerms = searchObjects
 
 	switch searchFor {
-	case searchPrefixAuthor:
+	case consts.SearchPrefixAuthor:
 		query.searchFor = SearchAuthor
-	case searchPrefixBook:
+	case consts.SearchPrefixBook:
 		query.searchFor = SearchBook
-	case searchPrefixSeq:
+	case consts.SearchPrefixSeq:
 		query.searchFor = SearchSeq
 	default:
 		return MakeSearchQuery(), errors.Errorf("Search prefix '%s' is not supported", searchFor)

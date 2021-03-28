@@ -7,9 +7,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"flibustier_v2/internal/messages"
+	"flibustier_v2/internal/testutils"
 )
-
-const kvRoot = "../../test-kv"
 
 // ./importer -extract_seq 34145,432,34360 -kv_root=./test-kv
 func TestMakeSearchQuery(t *testing.T) {
@@ -61,7 +60,7 @@ func TestSearchSeq(t *testing.T) {
 	q.searchType = SearchByName
 	q.searchTerms = []string {"маск"}
 
-	result, err := Search(kvRoot, q)
+	result, err := Search(testutils.KvRoot, q)
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, "34145", result.FoundSeqs[0].FlibustaSequenceId)
@@ -73,7 +72,7 @@ func TestSearchAuth(t *testing.T) {
 	q.searchType = SearchByName
 	q.searchTerms = []string {"метель"}
 
-	result, err := Search(kvRoot, q)
+	result, err := Search(testutils.KvRoot, q)
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, "109170", result.FoundAuthors[0].FlibustaAuthorId)
@@ -85,7 +84,7 @@ func TestSearchById(t *testing.T) {
 	q.searchType = SearchById
 	q.searchTerms = []string {"526369"}
 
-	result, err := Search(kvRoot, q)
+	result, err := Search(testutils.KvRoot, q)
 	assert.Nil(t, err)
 	assert.Equal(t, "Запах Сумрака", result.FoundBooks[0].Title)
 }

@@ -23,7 +23,5 @@ func main() {
 
 	flag.Parse()
 
-	search.searchBooks(kvRoot, []string{*what})
 
-	fmt.Printf("root=%s, what=%s", *kvRoot, *what)
 }

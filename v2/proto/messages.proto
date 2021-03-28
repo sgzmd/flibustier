@@ -21,3 +21,13 @@ message Sequence {
   string sequence_name = 2;
   repeated string book_id = 3;
 }
+
+message FollowKey {
+  string flibusta_id = 1;
+  string follow_type = 2;
+}
+
+message FollowObject {
+  FollowKey key = 1;
+  repeated Book book = 2;
+}

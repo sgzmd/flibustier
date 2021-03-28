@@ -1,5 +1,28 @@
 # Flibustier v2 High Level Plan
 
+## New plan
+
+There are 2 things one can follow:
+
+1. Sequence
+2. Author
+
+This really sums it up. 
+
+There will be following operations:
+
+1. Add to list of follows
+2. Check all follows for updates
+
+### Follow something
+
+When we want to follow something, we want to:
+
+1. Check it's not already followed. This requires <id,type> scan.
+2. Create a follow
+
+## Old Content
+
 The problem of Flibustier v1 is that it became so messy that the migration to new model (where we stored which books)
 were there became very hard to the point that I no longer understand how the code works.
 
@@ -58,3 +81,4 @@ key = "1234"
 value = "proto:book"
 
 ```
+
