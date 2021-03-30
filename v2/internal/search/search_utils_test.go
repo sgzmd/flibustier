@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
 
-	"flibustier_v2/internal/messages"
-	"flibustier_v2/internal/testutils"
+	"github.com/sgzmd/flibustier/internal/messages"
+	"github.com/sgzmd/flibustier/internal/testutils"
 )
 
 // ./importer -extract_seq 34145,432,34360 -kv_root=./test-kv
@@ -58,7 +58,7 @@ func TestSearchSeq(t *testing.T) {
 	q := MakeSearchQuery()
 	q.searchFor = SearchSeq
 	q.searchType = SearchByName
-	q.searchTerms = []string {"маск"}
+	q.searchTerms = []string{"маск"}
 
 	result, err := Search(testutils.KvRoot, q)
 	assert.Nil(t, err)
@@ -70,7 +70,7 @@ func TestSearchAuth(t *testing.T) {
 	q := MakeSearchQuery()
 	q.searchFor = SearchAuthor
 	q.searchType = SearchByName
-	q.searchTerms = []string {"метель"}
+	q.searchTerms = []string{"метель"}
 
 	result, err := Search(testutils.KvRoot, q)
 	assert.Nil(t, err)
@@ -82,7 +82,7 @@ func TestSearchById(t *testing.T) {
 	q := MakeSearchQuery()
 	q.searchFor = SearchBook
 	q.searchType = SearchById
-	q.searchTerms = []string {"526369"}
+	q.searchTerms = []string{"526369"}
 
 	result, err := Search(testutils.KvRoot, q)
 	assert.Nil(t, err)
