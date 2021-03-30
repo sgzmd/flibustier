@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"flibustier_v2/internal/data"
-	"flibustier_v2/internal/search"
+	"github.com/sgzmd/flibustier/internal/data"
+	"github.com/sgzmd/flibustier/internal/search"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 
 	flag.Parse()
 
-	db,err := data.OpenDB(*dbpath)
+	db, err := data.OpenDB(*dbpath)
 	if err != nil {
 		log.Panic(err)
 	}

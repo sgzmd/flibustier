@@ -7,10 +7,9 @@ import (
 
 	_ "github.com/mattn/go-sqlite3" // Import go-sqlite3 library
 
-	"flibustier_v2/internal/data"
-	"flibustier_v2/internal/importer"
+	"github.com/sgzmd/flibustier/internal/data"
+	"github.com/sgzmd/flibustier/internal/importer"
 )
-
 
 func main() {
 	sqlitePath := flag.String("sqlite_db_path", "./flibusta.data", "Path to SQLite3 database dump")
@@ -37,11 +36,10 @@ func main() {
 		extractSequences = strings.Split(*extractOnlySeq, ",")
 	}
 
-	db,err := data.OpenDB(*dbpath)
+	db, err := data.OpenDB(*dbpath)
 	if err != nil {
 		log.Panicf("Couldn't open data %s: %s", dbpath, err)
 	}
 
 	importer.RunMain(sqlitePath, db, checkIntegrity, extractSequences)
 }
-

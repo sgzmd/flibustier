@@ -2,8 +2,6 @@ package search
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -13,9 +11,9 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"google.golang.org/protobuf/proto"
 
-	"flibustier_v2/internal/consts"
-	"flibustier_v2/internal/data"
-	"flibustier_v2/internal/messages"
+	"github.com/sgzmd/flibustier/internal/consts"
+	"github.com/sgzmd/flibustier/internal/data"
+	"github.com/sgzmd/flibustier/internal/messages"
 )
 
 type SearchType string
@@ -145,7 +143,7 @@ func searchSeq(db *bolt.DB, query searchQuery) (searchResult, error) {
 		cursor := bucket.Cursor()
 		key, value := cursor.Next()
 		for key != nil {
-			
+
 			key, value = cursor.Next()
 		}
 	})

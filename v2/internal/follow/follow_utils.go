@@ -10,9 +10,9 @@ import (
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 
-	"flibustier_v2/internal/consts"
-	"flibustier_v2/internal/messages"
-	"flibustier_v2/internal/search"
+	"github.com/sgzmd/flibustier/internal/consts"
+	"github.com/sgzmd/flibustier/internal/messages"
+	"github.com/sgzmd/flibustier/internal/search"
 )
 
 func FollowAuthor(kvroot string, author messages.Author) error {

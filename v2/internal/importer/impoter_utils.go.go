@@ -12,8 +12,8 @@ import (
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 
-	"flibustier_v2/internal/data"
-	"flibustier_v2/internal/messages"
+	"github.com/sgzmd/flibustier/internal/data"
+	"github.com/sgzmd/flibustier/internal/messages"
 )
 
 const SQL_AUTHORS = `

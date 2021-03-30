@@ -1,4 +1,4 @@
-module flibustier_v2
+module github.com/sgzmd/flibustier
 
 go 1.16
 
