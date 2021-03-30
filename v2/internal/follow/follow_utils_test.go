@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
 
-	"flibustier_v2/internal/consts"
-	"flibustier_v2/internal/messages"
-	"flibustier_v2/internal/search"
-	"flibustier_v2/internal/testutils"
+	"github.com/sgzmd/flibustier/internal/consts"
+	"github.com/sgzmd/flibustier/internal/messages"
+	"github.com/sgzmd/flibustier/internal/search"
+	"github.com/sgzmd/flibustier/internal/testutils"
 )
 
 func TestFollowAuthor(t *testing.T) {
