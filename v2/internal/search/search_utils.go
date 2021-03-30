@@ -10,9 +10,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/prologic/bitcask"
+	bolt "go.etcd.io/bbolt"
 	"google.golang.org/protobuf/proto"
 
 	"flibustier_v2/internal/consts"
+	"flibustier_v2/internal/data"
 	"flibustier_v2/internal/messages"
 )
 
@@ -121,35 +123,34 @@ func ParseQuery(term string, termType SearchType) (searchQuery, error) {
 	return query, nil
 }
 
-func Search(kvRoot string, query searchQuery) (searchResult, error) {
+func Search(db *bolt.DB, query searchQuery) (searchResult, error) {
 	switch query.searchFor {
 	case SearchAuthor:
-		return searchAuthor(kvRoot, query)
+		return searchAuthor(db, query)
 	case SearchBook:
-		return searchBook(kvRoot, query)
+		return searchBook(db, query)
 	case SearchSeq:
-		return searchSeq(kvRoot, query)
+		return searchSeq(db, query)
 	default:
 		return MakeSearchResult(), errors.Errorf("Unsupported searchFor=%s", query.searchFor)
 	}
 }
 
-func searchSeq(kvRoot string, query searchQuery) (searchResult, error) {
+func searchSeq(db *bolt.DB, query searchQuery) (searchResult, error) {
 	result := MakeSearchResult()
 
-	kvpath := path.Join(kvRoot, consts.SEQ_KV)
-	if _, err := os.Stat(kvpath); os.IsNotExist(err) {
-		log.Panicf("KV file %s doesn't exist", kvpath)
-	}
-
-	kv, err := bitcask.Open(kvpath)
-	defer kv.Close()
-	if err != nil {
-		return result, err
-	}
-
+	seq := messages.Sequence{}
+	db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(data.Sequences())
+		cursor := bucket.Cursor()
+		key, value := cursor.Next()
+		for key != nil {
+			
+			key, value = cursor.Next()
+		}
+	})
 	kv.Scan([]byte(""), func(key []byte) error {
-		seq := messages.Sequence{}
+
 		bytes, err := kv.Get(key)
 		if err != nil {
 			return err
@@ -174,7 +175,7 @@ func searchSeq(kvRoot string, query searchQuery) (searchResult, error) {
 	return result, nil
 }
 
-func searchBook(kvRoot string, query searchQuery) (searchResult, error) {
+func searchBook(kvRoot *bolt.DB, query searchQuery) (searchResult, error) {
 	result := MakeSearchResult()
 
 	kv, err := bitcask.Open(path.Join(kvRoot, consts.BOOKS_KV))
@@ -209,7 +210,7 @@ func searchBook(kvRoot string, query searchQuery) (searchResult, error) {
 	return result, nil
 }
 
-func searchAuthor(kvRoot string, query searchQuery) (searchResult, error) {
+func searchAuthor(kvRoot *bolt.DB, query searchQuery) (searchResult, error) {
 	result := MakeSearchResult()
 
 	kv, err := bitcask.Open(path.Join(kvRoot, consts.AUTHORS_KV))

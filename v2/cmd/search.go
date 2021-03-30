@@ -5,15 +5,21 @@ import (
 	"fmt"
 	"log"
 
+	"flibustier_v2/internal/data"
 	"flibustier_v2/internal/search"
 )
 
 func main() {
-	kvRoot := flag.String("kv_root", "kv", "Root of KV store")
+	dbpath := flag.String("db", "kv", "Root of KV store")
 	searchFor := flag.String("search", "book:.+дозор.+", "What are we searching for")
 	searchType := flag.String("type", "name", "Search type (id/name)")
 
 	flag.Parse()
+
+	db,err := data.OpenDB(*dbpath)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	stype, err := search.ParseSearchType(*searchType)
 	if err != nil {
@@ -25,7 +31,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	res, err := search.Search(*kvRoot, q)
+	res, err := search.Search(db, q)
 	if err != nil {
 		log.Panic(err)
 	}
