@@ -17,7 +17,7 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <kotlin.version>1.4.21</kotlin.version>
+        <kotlin.version>1.4.30</kotlin.version>
     </properties>
 
     <dependencies>
@@ -199,7 +199,7 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${kotlin.version}</version>
+                <version>1.4.21</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -219,6 +219,7 @@
                 <configuration>
                     <args>
                         <arg>-Xjsr305=strict</arg>
+                        <arg>-Xuse-ir</arg>
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>
