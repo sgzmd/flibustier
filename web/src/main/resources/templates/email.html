@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notification from Flibustier</title>
+</head>
+<body>
+
+<p>Flibustier detected following updates:</p>
+<ul>
+  <li th:each="upd : ${updates}"></li>
+</ul>
+
+</body>
+</html>

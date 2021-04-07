@@ -3,12 +3,13 @@ package com.sgzmd.flibustier.web.scheduled
 import com.sgzmd.flibustier.web.db.ConnectionProvider
 import com.sgzmd.flibustier.web.db.IEntryUpdateStatusProvider
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
+import com.sgzmd.flibustier.web.db.entity.Book
+import com.sgzmd.flibustier.web.db.entity.TrackedEntry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.File
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -40,17 +41,17 @@ class UpdateChecker(
       logger.info("Updating user $userId")
       val updates = updatesByUser[userId]
 
-      var update = ""
       if (updates != null) {
-        for (upd in updates) {
-          update += "Updated: ${upd.entry.entryName}\n"
-          update += upd.newBooks?.joinToString("\n") { "${it.bookName} https://flibusta.is/b/${it.bookId}" }
-          update += "\n"
+        val entriesToBooks = mutableMapOf<TrackedEntry, List<Book>>()
+        for (update in updates) {
+          if (update.newBooks?.isNotEmpty() == true) {
+            entriesToBooks[update.entry] = update.newBooks!!
+          }
         }
-      }
 
-      if (update.isNotEmpty()) {
-        updateNotifier.notifyUser(userId, update)
+        if (entriesToBooks.isNotEmpty()) {
+          updateNotifier.notifyUser(Update(userId, entriesToBooks))
+        }
       }
     }
   }

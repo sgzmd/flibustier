@@ -7,9 +7,11 @@ import com.sgzmd.flibustier.web.db.IEntryUpdateStatusProvider.UpdateRequired
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.db.entity.Book
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
+import kotlin.test.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,7 +24,9 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import org.mockito.Mockito.`when` as whenever
 
-val testUserNotifier = Mockito.mock(UserNotifier::class.java)
+var testUserNotifier = Mockito.mock(UserNotifier::class.java)
+
+fun <T> capture(argumentCaptor: ArgumentCaptor<T>): T = argumentCaptor.capture()
 
 @Profile("test")
 @Component
@@ -51,6 +55,7 @@ internal class UpdateCheckerTest {
 
   @Before
   fun setUp() {
+    testUserNotifier = Mockito.mock(UserNotifier::class.java)
     entryUpdateProvider = Mockito.mock(IEntryUpdateStatusProvider::class.java)
     repo.deleteAll()
   }
@@ -60,59 +65,95 @@ internal class UpdateCheckerTest {
     val entry = TrackedEntry(FoundEntryType.SERIES, "Test Series", 1, 2, "user_series")
     repo.save(entry)
 
+    val newBooks = listOf(Book("TestBook", 1))
     whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
-        .thenReturn(
-            listOf(UpdateRequired(
-                entry,
-                3,
-                newBooks = listOf(Book("TestBook", 1)))))
+      .thenReturn(
+        listOf(
+          UpdateRequired(
+            entry,
+            3,
+            newBooks = newBooks
+          )
+        )
+      )
 
-    val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
+    val updateChecker =
+      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
     updateChecker.checkUpdates()
 
-    verify(testUserNotifier).notifyUser(
-        "user_series",
-        "Updated: Test Series\nTestBook https://flibusta.is/b/1\n")
+    val captor = ArgumentCaptor.forClass(Update::class.java)
+    verify(testUserNotifier).notifyUser(captor.capture())
+    verifyUserAndBookList("user_series", captor, newBooks)
   }
 
   @Test
   fun checkUpdates_Author() {
     val entry = TrackedEntry(FoundEntryType.AUTHOR, "Test Author", 1, 2, "user_author")
+    entry.books = listOf(Book("Original Book", 0))
     repo.save(entry)
 
+    val newBookList = listOf(Book("TestBook", 1))
     whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
-        .thenReturn(listOf(UpdateRequired(
+      .thenReturn(
+        listOf(
+          UpdateRequired(
             entry,
             3,
-            newBooks = listOf(Book("TestBook", 1)))))
+            newBooks = newBookList
+          )
+        )
+      )
 
-    val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
+    val updateChecker =
+      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
     updateChecker.checkUpdates()
 
-    verify(testUserNotifier).notifyUser(
-        "user_author",
-        "Updated: Test Author\nTestBook https://flibusta.is/b/1\n")
+    val captor = ArgumentCaptor.forClass(Update::class.java)
+    verify(testUserNotifier).notifyUser(captor.capture())
+
+    verifyUserAndBookList("user_author", captor, newBookList)
+  }
+
+  private fun verifyUserAndBookList(
+    expectedUserId: String,
+    captor: ArgumentCaptor<Update>,
+    newBookList: List<Book>
+  ) {
+    assertEquals(expectedUserId, captor.value.userId)
+    // There must be only 1 new entry here
+    captor.value.entries.forEach {
+      assertEquals(/* author_id */1, it.key.entryId)
+      assertEquals(newBookList, it.value)
+    }
   }
 
   @Test
   fun checkUpdates_Author_MultiBooks() {
-    val entry = TrackedEntry(FoundEntryType.AUTHOR, "Test Author", 1, 2, "user_author")
+    val entry = TrackedEntry(FoundEntryType.AUTHOR, "Test Author", 1, 2, "user_author_mb")
     repo.save(entry)
 
+    val newBooksList = listOf(
+      Book("TestBook", 1),
+      Book("TestBook2", 2),
+      Book("TestBook2", 3)
+    )
     whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
-        .thenReturn(listOf(UpdateRequired(
+      .thenReturn(
+        listOf(
+          UpdateRequired(
             entry,
             3,
-            newBooks = listOf(
-                Book("TestBook", 1),
-                Book("TestBook2", 2)
-            ))))
+            newBooks = newBooksList
+          )
+        )
+      )
 
-    val updateChecker = UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
+    val updateChecker =
+      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
     updateChecker.checkUpdates()
 
-    verify(testUserNotifier).notifyUser(
-        "user_author",
-        "Updated: Test Author\nTestBook https://flibusta.is/b/1\nTestBook2 https://flibusta.is/b/2\n")
+    val captor = ArgumentCaptor.forClass(Update::class.java)
+    verify(testUserNotifier).notifyUser(captor.capture())
+    verifyUserAndBookList("user_author_mb", captor, newBooksList)
   }
 }
