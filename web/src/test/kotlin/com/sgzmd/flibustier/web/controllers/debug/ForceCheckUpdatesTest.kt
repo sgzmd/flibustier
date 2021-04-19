@@ -9,6 +9,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringRunner
 import kotlin.test.assertEquals
+import org.springframework.web.servlet.view.RedirectView
 
 @SpringBootTest
 @RunWith(SpringRunner::class)
@@ -21,7 +22,7 @@ internal class ForceCheckUpdatesTest {
     @Test
     @WithMockUser("testuser")
     fun testTrack_Series() {
-        val result = forceUpdateController.info()
-        assertEquals("force-check-updates", result)
+        val result = forceUpdateController.info().url
+        assertEquals("/", result)
    }
 }
