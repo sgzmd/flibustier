@@ -40,7 +40,7 @@ class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifie
       updateText += "<h1>" + entry.entryType.toString() + ": " + entry.entryName + "</h1>"
       updateText += "<ul>"
       for (book in newBooks) {
-        updateText += "<li><a href='http://flibusta.is/b/" + book.bookId + "'>" + book.bookName + "</a></li>"
+        updateText += "<li><a href='https://flibusta.is/b/" + book.bookId + "'>" + book.bookName + "</a></li>"
       }
       updateText += "</ul>"
     }

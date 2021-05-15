@@ -39,7 +39,7 @@ class EmailUserNotifierTest {
           """<html><body>
             |<h1>SERIES: TestEntry</h1>
             |<ul>
-            |<li><a href='http://flibusta.is/b/123'>NewBook</a></li>
+            |<li><a href='https://flibusta.is/b/123'>NewBook</a></li>
             |</ul>
             |</body>
             |</html>""".trimMargin().replace("\n", ""),
