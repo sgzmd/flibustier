@@ -53,7 +53,7 @@ class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifie
   fun sendMessage(userId: String, updateText: String) {
     val mimeMessage = mailSender.createMimeMessage()
     val helper = MimeMessageHelper(mimeMessage, "utf-8")
-    helper.setText(updateText)
+    helper.setText(updateText, true)
     helper.setTo(userId)
     helper.setFrom("flibustier@kro.r-k.co")
     helper.setSubject("Updates found by Flibustier")
