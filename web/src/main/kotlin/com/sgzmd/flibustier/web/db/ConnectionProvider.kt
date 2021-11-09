@@ -30,4 +30,15 @@ class ConnectionProvider(@Value("\${flibusta.dburl}") dbUrl: String) {
         _connection?.close()
         _connection = null
     }
+
+    private fun getLastAfterDelimiter(url: String, delimiter: String): String {
+        val index = url.lastIndexOf(delimiter)
+        return url.substring(index + 1)
+    }
+
+    // URL can be like
+    // dburl: "jdbc:sqlite:/opt/apps/flibustier/flibusta.db"
+    internal fun getFileNameFromUrl(url: String): String {
+        return getLastAfterDelimiter(url, ":")
+    }
 }
