@@ -5,8 +5,12 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
+import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
+import java.time.Instant
+import java.time.LocalDateTime
+import java.util.*
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -29,6 +33,12 @@ class ConnectionProvider(@Value("\${flibusta.dburl}") dbUrl: String) {
         logger.info("Force closing connection")
         _connection?.close()
         _connection = null
+    }
+
+    fun getLastUpdateTimestamp() : LocalDateTime {
+        val dbFile = File(getFileNameFromUrl(_connectionUrl))
+        val lastModified = dbFile.lastModified()
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(lastModified), TimeZone.getTimeZone("UTC").toZoneId())
     }
 
     private fun getLastAfterDelimiter(url: String, delimiter: String): String {

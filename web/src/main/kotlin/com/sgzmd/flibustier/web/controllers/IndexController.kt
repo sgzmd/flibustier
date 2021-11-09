@@ -1,5 +1,6 @@
 package com.sgzmd.flibustier.web.controllers
 
+import com.sgzmd.flibustier.web.db.ConnectionProvider
 import com.sgzmd.flibustier.web.db.IGlobalSearch
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.security.AuthenticationFacade
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam
 @Controller
 class IndexController(
     @Autowired val globalSearch: IGlobalSearch,
+    @Autowired val connectionProvider: ConnectionProvider,
     @Autowired val trackedEntryRepo: TrackedEntryRepository,
     @Autowired val authFacade: AuthenticationFacade) {
 
@@ -21,6 +23,7 @@ class IndexController(
             model: Model) : String {
         model.addAttribute("name", "world")
         model.addAttribute("username", authFacade.getUserId())
+        model.addAttribute("lastUpdated", connectionProvider.getLastUpdateTimestamp())
 
         if (searchTerm != null && searchTerm.length > 1) {
             val results = globalSearch.search(searchTerm)
