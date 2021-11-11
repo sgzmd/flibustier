@@ -5,15 +5,15 @@
 
 <body>
 
-    <nav th:replace="fragments/header :: navbar"/>
+<nav th:replace="fragments/header :: navbar"/>
 
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12">
                 <form method="GET" action="/">
-                    <label for="search_term"><span class="align-middle">Название серии</span></label><br />
+                    <label for="search_term"><span class="align-middle">Название серии</span></label><br/>
                     <input type="text" class="form-control mb-2" name="search_term" id="search_term"
-                        placeholder="Дозоры" />
+                           placeholder="Дозоры"/>
                     <button class="btn btn-primary mb-2">Искать</button>
                 </form>
             </div>
@@ -23,15 +23,15 @@
             <div class="col-md-8">
 
                 <div class="alert alert-secondary" role="alert"
-                    th:if="${searchResults != null && searchResults.isEmpty()}">
+                     th:if="${searchResults != null && searchResults.isEmpty()}">
                     По запросу ничего не найдено.
                 </div>
 
                 <div th:each="sr : ${searchResults}" class="search-record">
-                    <div class="entry-type" th:text="${sr.entryType}" />
+                    <div class="entry-type" th:text="${sr.entryType}"/>
                     <div class="title">
                         <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${sr.entryId})}" target="_blank"><span
-                                th:text="${sr.name}" /></a>&nbsp;
+                                th:text="${sr.name}"/></a>&nbsp;
                         <span>(книг: <span th:text="${sr.numEntities}"/>)</span>
                         &nbsp;<a
                             th:href="@{/track(entryId=${sr.entryId},entryType=${sr.entryType},entryName=${sr.name})}">(+)</a>
@@ -54,40 +54,41 @@
 
                     <div th:each="entry : ${tracked}">
                         <span th:if="${entry.isSeries()}">
-                            <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${entry.entryId})}" th:text="${entry.entryName}"/>
-                            <span class="entry-type">Серия, <span th:text="${entry.numEntries}" /> книг</span>
+                            <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${entry.entryId})}"
+                               th:text="${entry.entryName}"/>
+                            <span class="entry-type">Серия, <span th:text="${entry.numEntries}"/> книг</span>
                         </span>
 
                         <span th:if="${entry.isAuthor()}">                            
-                            <a th:href="@{http://flibusta.is/author/{authorId}(authorId=${entry.entryId})}" th:text="${entry.entryName}"/>
-                            <span class="entry-type">Автор, <span th:text="${entry.numEntries}" /> книг</span>
+                            <a th:href="@{http://flibusta.is/author/{authorId}(authorId=${entry.entryId})}"
+                               th:text="${entry.entryName}"/>
+                            <span class="entry-type">Автор, <span th:text="${entry.numEntries}"/> книг</span>
                         </span>
 
-                        <a 
-                            th:href="@{/untrack(id=${entry.id})}" 
-                            class="untrack" 
-                            data-toggle="tooltip" 
-                            data-placement="bottom" 
-                            title="Прекратить отслеживать обновления"><span>x</span></a>
+                        <a
+                                th:href="@{/untrack(id=${entry.id})}"
+                                class="untrack"
+                                data-toggle="tooltip"
+                                data-placement="bottom"
+                                title="Прекратить отслеживать обновления"><span>x</span></a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-8">
-                <span>Последнее обновление: <span th:text="${lastUpdated}" /></span>
-            </div>
-        </div>
+    </div>
+<footer class="footer">
+        <p class="lead">Последнее обновление: <span th:text="${lastUpdated}"/></p>
+</footer>
 
 
-
-
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-        <script>
-            $(".untrack").tooltip();
-        </script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+<script>
+    $(".untrack").tooltip();
+</script>
 
 </body>
 

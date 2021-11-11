@@ -13,7 +13,7 @@ import org.thymeleaf.Thymeleaf
 
 @Component
 @Profile("prod")
-class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifier {
+open class EmailUserNotifier(@Autowired val mailSender: JavaMailSender) : UserNotifier {
   val auditLog = LoggerFactory.getLogger("audit")
 
   override fun notifyUser(userId: String, updated: String) {
