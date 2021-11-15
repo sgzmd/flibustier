@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from urllib.request import URLopener
 
+import sanity_check    
+
 parser = argparse.ArgumentParser(description="Downloads data dumps and converts to sqlite3")
 parser.add_argument('--skip_download', default=False, action='store_true', help='Skips download')
 args = parser.parse_args()
@@ -20,12 +22,17 @@ if not args.skip_download:
             os.system("wget " + url)
 
 print("Running gunzip ...")
-os.system("rm flibusta.db")
 os.system("gunzip *.gz")
 os.system("cat lib*.sql > sqldump.sql")
 print("Converting to SQLite3...")
-os.system("/usr/bin/awk -f mysql2sqlite sqldump.sql | sqlite3 flibusta.db")
+os.system("/usr/bin/awk -f mysql2sqlite sqldump.sql | sqlite3 flibusta_new.db")
 print("Applying SQL scripts...")
-os.system("sqlite3 flibusta.db < SequenceAuthor.sql")
+os.system("sqlite3 flibusta_new.db < SequenceAuthor.sql")
 print("All done")
 os.system("rm lib*.sql")
+
+if sanity_check.check_file_sanity("flibusta_new.db"):
+    os.system("rm flibusta.db")
+    os.system("mv flibusta_new.db flibusta.db")
+else:
+    print("New file not sane, keeping things as is")
