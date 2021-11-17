@@ -24,7 +24,7 @@ func CreateUrlList(baseUrl string) []string {
 	links := doc.FindAll("a")
 	for _, link := range links {
 		href := link.Attrs()["href"]
-		if strings.HasPrefix(href, "lib.") {
+		if strings.HasPrefix(href, "lib.") && !strings.HasPrefix(href, "lib.b.") && !strings.HasPrefix(href, "lib.a.") {
 			url := fmt.Sprintf("%s%s", baseUrl, href)
 			fmt.Printf("%s -> %s\n", link.Text(), url)
 			urls = append(urls, url)
