@@ -50,6 +50,5 @@ func main() {
 			fileName := filepath.Base(parsedUrl.Path)
 			helpers.DownloadFile(fileName, u)
 		}
-
 	}
 }
