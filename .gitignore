@@ -23,7 +23,7 @@
 hs_err_pid*
 sqls/
 tmp/
-data/
+# data/
 sqldump.sql
 config/
 h2.db.trace.db
