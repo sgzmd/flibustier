@@ -16,7 +16,6 @@ fi
 active_dir=$1
 flibusta_db_path=$2
 
-
 if [ ! -d $active_dir ]; then 
   echo "Active directory $1 doesn't exist"
   exit 1
@@ -53,7 +52,6 @@ if [ $? -ne 0 ]; then
     exit 2
 fi
 
-
 # Removing old database copy if any
 rm -rf flibusta_new.db
 
@@ -64,7 +62,6 @@ if [ $? -ne 0 ]; then
     echo "sqlite3 db creation has failed with error code $?"
     exit 3
 fi
-
 
 # Applying necessary patches to the DB
 sqlite3 flibusta_new.db < SequenceAuthor.sql
