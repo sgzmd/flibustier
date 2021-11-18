@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	FLIBUSTA_DB = "../testutils/flibusta-test.db"
+	FLIBUSTA_DB = "../../../testutils/flibusta-test.db"
 )
 
 var (
@@ -54,25 +54,15 @@ func TestSmokeTest(t *testing.T) {
 	}
 }
 
+func TestSearchAuthor(t *testing.T) {
+	const TERM = "метельский"
+	result, err := client.GlobalSearch(context.Background(), &pb.SearchRequest{SearchTerm: TERM})
+	assert.NotNil(t, err)
+	assert.Len(t, result.Entry, 1)
+	assert.Equal(t, result.Entry[0].Author, TERM)
+}
+
 func TestMain(m *testing.M) {
-	// listener, err := net.Listen("tcp", ":0")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// Finding out which port are we listening on
-	// port := listener.Addr().(*net.TCPAddr).Port
-
-	// s := grpc.NewServer()
-	// srv, err := NewServer(FLIBUSTA_DB)
-	// if err != nil {
-	// 	log.Fatalf("Couldn't create server: %v", err)
-	// 	os.Exit(2)
-	// }
-	// defer srv.Close()
-	// pb.RegisterFlibustierServer(s, srv)
-
-	// log.Printf("Server is now running on localhost:%d", port)
 	ctx := context.Background()
 	// Creating a client
 	conn, err := grpc.DialContext(ctx, "", grpc.WithInsecure(), grpc.WithContextDialer(dialer()))

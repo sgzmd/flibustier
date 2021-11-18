@@ -13,7 +13,7 @@ from
 	libavtor la,
 	libbook lb
 where     
-	a.author_fts match(%s*)
+	a.author_fts match("%s*")
 	and la.AvtorId = a.authorId
 	and la.BookId = lb.BookId
 	and lb.Deleted != '1'
