@@ -30,9 +30,6 @@ func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) 
 	log.Printf("Searching for author: %s", req)
 	sql := CreateAuthorSearchQuery(req.SearchTerm)
 
-	wd, _ := os.Getwd()
-	log.Printf("Current directory: %s", wd)
-
 	rows, err := s.Database.Query(sql)
 
 	if err != nil {
@@ -53,7 +50,7 @@ func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) 
 		}
 
 		entries = append(entries, &pb.FoundEntry{
-			EntryType:   pb.FoundEntry_AUTHOR,
+			EntryType:   pb.EntryType_AUTHOR,
 			Author:      authorName,
 			EntryName:   authorName,
 			EntryId:     authorId,
@@ -64,15 +61,66 @@ func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) 
 	return entries, nil
 }
 
-func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.SearchResponse, error) {
-	log.Printf("Received: %v", in.GetSearchTerm())
-	authors, err := s.SearchAuthors(in)
+func (s *server) SearchSeries(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
+	log.Printf("Searching for series: %s", req)
+	sql := CreateSequenceSearchQuery(req.SearchTerm)
+	rows, err := s.Database.Query(sql)
+
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
+	var entries []*pb.FoundEntry = make([]*pb.FoundEntry, 0, 10)
+	for rows.Next() {
+		var seqName string
+		var authors string
+		var seqId int64
+		var count int32
+
+		err = rows.Scan(&seqName, &authors, &seqId, &count)
+		if err != nil {
+			log.Fatalf("Failed to scan the row: %v", err)
+			return nil, err
+		}
+
+		entries = append(entries, &pb.FoundEntry{
+			EntryType:   pb.EntryType_SERIES,
+			Author:      authors,
+			EntryName:   seqName,
+			EntryId:     seqId,
+			NumEntities: count,
+		})
+	}
+
+	return entries, nil
+}
+
+func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.SearchResponse, error) {
+	log.Printf("Received: %v", in.GetSearchTerm())
+
+	var entries []*pb.FoundEntry = make([]*pb.FoundEntry, 0, 10)
+
+	// If there's no filter for series
+	if in.EntryTypeFilter != pb.EntryType_SERIES {
+		authors, err := s.SearchAuthors(in)
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, authors...)
+	}
+
+	if in.EntryTypeFilter != pb.EntryType_AUTHOR {
+		series, err := s.SearchSeries(in)
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, series...)
+	}
+
 	return &pb.SearchResponse{
 		OriginalRequest: in,
-		Entry:           authors,
+		Entry:           entries,
 	}, nil
 }
 

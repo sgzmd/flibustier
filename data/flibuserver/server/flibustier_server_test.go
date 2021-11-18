@@ -54,12 +54,32 @@ func TestSmokeTest(t *testing.T) {
 	}
 }
 
-func TestSearchAuthor(t *testing.T) {
-	const TERM = "метельский"
+func TestSearchEverything(t *testing.T) {
+	const TERM = "Николай Александрович Метельский"
 	result, err := client.GlobalSearch(context.Background(), &pb.SearchRequest{SearchTerm: TERM})
+	assert.Nil(t, err)
+	assert.Len(t, result.Entry, 2)
+	assert.Equal(t, result.Entry[0].Author, "Николай Александрович Метельский")
+	assert.Equal(t, result.Entry[1].EntryName, "Унесенный ветром")
+}
+
+func TestSearchAuthor(t *testing.T) {
+	const TERM = "Метельский"
+	result, err := client.GlobalSearch(context.Background(),
+		&pb.SearchRequest{SearchTerm: TERM, EntryTypeFilter: pb.EntryType_AUTHOR})
 	assert.Nil(t, err)
 	assert.Len(t, result.Entry, 1)
 	assert.Equal(t, result.Entry[0].Author, "Николай Александрович Метельский")
+}
+
+func TestSearchSeries(t *testing.T) {
+	// note that searching for author of the series
+	const TERM = "Метельский"
+	result, err := client.GlobalSearch(context.Background(),
+		&pb.SearchRequest{SearchTerm: TERM, EntryTypeFilter: pb.EntryType_SERIES})
+	assert.Nil(t, err)
+	assert.Len(t, result.Entry, 1)
+	assert.Equal(t, result.Entry[0].EntryName, "Унесенный ветром")
 }
 
 func TestMain(m *testing.M) {

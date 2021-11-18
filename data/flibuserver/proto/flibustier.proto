@@ -18,19 +18,20 @@ service Flibustier {
   rpc GlobalSearch (SearchRequest) returns (SearchResponse) {}
 }
 
+enum EntryType {
+  UNKNOWN = 0;
+  SERIES = 1;
+  AUTHOR = 2;
+  BOOK = 3;
+}
+
 message SearchRequest {
   string search_term = 1;
+  EntryType entry_type_filter = 2;
 }
 
 message FoundEntry {
-  enum FoundEntryType {
-    UNKNOWN = 0;
-    SERIES = 1;
-    AUTHOR = 2;
-    BOOK = 3;
-  }
-
-  FoundEntryType entry_type = 1;
+  EntryType entry_type = 1;
   string entry_name = 2;
   string author = 3;
   int64 entry_id = 4;

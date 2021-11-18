@@ -19,8 +19,23 @@ where
 	and lb.Deleted != '1'
 GROUP BY 1,2;
 	`
+
+	SEQUENCE_QUERY_TEMPLATE = `
+select	
+	f.SeqName,
+	f.Authors,
+	f.SeqId,
+	(select count(ls.BookId) from libseq ls where ls.SeqId = f.SeqId) NumBooks
+from 
+	sequence_fts f 
+where f.sequence_fts match ("%s*")
+	`
 )
 
 func CreateAuthorSearchQuery(author string) string {
 	return fmt.Sprintf(AUTHOR_QUERY_TEMPLATE, author)
+}
+
+func CreateSequenceSearchQuery(seq string) string {
+	return fmt.Sprintf(SEQUENCE_QUERY_TEMPLATE, seq)
 }
