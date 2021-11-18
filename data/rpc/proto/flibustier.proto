@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "flibustier/rpc";
+option java_multiple_files = true;
+option java_package = "com.sgzmd.flibustier.rpc";
+option java_outer_classname = "FlibustierProto";
+
+package flibustier;
+
+service Flibustier {
+  rpc GlobalSearch (SearchRequest) returns (SearchResponse) {}
+}
+
+message SearchRequest {
+  string search_term = 1;
+}
+
+message SearchResponse {
+  string result = 2;
+}
