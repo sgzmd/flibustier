@@ -57,9 +57,9 @@ func TestSmokeTest(t *testing.T) {
 func TestSearchAuthor(t *testing.T) {
 	const TERM = "метельский"
 	result, err := client.GlobalSearch(context.Background(), &pb.SearchRequest{SearchTerm: TERM})
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 	assert.Len(t, result.Entry, 1)
-	assert.Equal(t, result.Entry[0].Author, TERM)
+	assert.Equal(t, result.Entry[0].Author, "Николай Александрович Метельский")
 }
 
 func TestMain(m *testing.M) {
