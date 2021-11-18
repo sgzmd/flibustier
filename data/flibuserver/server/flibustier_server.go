@@ -28,9 +28,7 @@ var (
 
 func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.SearchResponse, error) {
 	log.Printf("Received: %v", in.GetSearchTerm())
-	return &pb.SearchResponse{
-		Result: "Hello " + in.GetSearchTerm(),
-	}, nil
+	return &pb.SearchResponse{OriginalRequest: in}, nil
 }
 
 func (s *server) Close() {
@@ -38,10 +36,10 @@ func (s *server) Close() {
 	s.Database.Close()
 }
 
-func NewServer() (*server, error) {
+func NewServer(db_path string) (*server, error) {
 	srv := new(server)
 
-	db, err := sql.Open("sqlite3", *flibusta_db)
+	db, err := sql.Open("sqlite3", db_path)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +56,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	srv, err := NewServer()
+	srv, err := NewServer(*flibusta_db)
 	if err != nil {
 		log.Fatalf("Couldn't create server: %v", err)
 		os.Exit(2)
