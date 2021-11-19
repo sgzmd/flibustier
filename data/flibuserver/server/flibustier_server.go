@@ -10,6 +10,7 @@ import (
 	"os"
 
 	pb "flibustaimporter/flibuserver/proto"
+
 	"google.golang.org/grpc/reflection"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -123,6 +124,79 @@ func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.Se
 		OriginalRequest: in,
 		Entry:           entries,
 	}, nil
+}
+
+// In case I forgot what am I doing here:
+// Creating a curried function which takes a slice of books
+// and returns a comparator to be used with this slice for sort.SliceStable
+func CreateBookComparator(books []*pb.Book) func(int, int) bool {
+	return func(i, j int) bool {
+		return books[i].BookId < books[j].BookId
+	}
+}
+
+func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*pb.UpdateCheckResponse, error) {
+	log.Printf("Received: %v", in)
+
+	response := make([]*pb.UpdateRequired, 0)
+
+	astm, err := s.Database.Prepare(`
+		select b.BookId, b.Title from libbook b, libavtor a 
+		where b.BookId = a.BookId and a.AvtorId = ?`)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// We will start with a very naive and simple implementation
+	for _, entry := range in.TrackedEntry {
+		if entry.EntryType == pb.EntryType_AUTHOR {
+			rs, err := astm.Query(entry.EntryId)
+			if err != nil {
+				return nil, err
+			}
+
+			new_books := make([]*pb.Book, 0)
+
+			for rs.Next() {
+				var bookId int32
+				var title string
+				rs.Scan(&bookId, &title)
+
+				new_books = append(new_books, &pb.Book{BookName: title, BookId: bookId})
+			}
+
+			if entry.NumEntries != int32(len(new_books)) {
+				// If it is equal, no updates required
+
+				// sort.SliceStable(entry.Book, CreateBookComparator(entry.Book))
+				// sort.SliceStable(new_books, CreateBookComparator(new_books))
+				old_book_map := make(map[int]*pb.Book)
+				for _, b := range entry.Book {
+					old_book_map[int(b.BookId)] = b
+				}
+
+				newly_added_books := make([]*pb.Book, 0, len(new_books)-int(entry.NumEntries))
+				for _, b := range new_books {
+					_, exists := old_book_map[int(b.BookId)]
+					if !exists {
+						// Well we found the missing book
+						newly_added_books = append(newly_added_books, b)
+					}
+				}
+
+				if len(newly_added_books) > 0 {
+					response = append(response, &pb.UpdateRequired{
+						TrackedEntry:  entry,
+						NewNumEntries: int32(len(new_books)),
+						NewBook:       newly_added_books,
+					})
+				}
+			}
+		}
+	}
+
+	return &pb.UpdateCheckResponse{UpdateRequired: response}, nil
 }
 
 func (s *server) Close() {

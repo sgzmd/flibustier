@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FlibustierClient interface {
 	GlobalSearch(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
+	CheckUpdates(ctx context.Context, in *UpdateCheckRequest, opts ...grpc.CallOption) (*UpdateCheckResponse, error)
 }
 
 type flibustierClient struct {
@@ -38,11 +39,21 @@ func (c *flibustierClient) GlobalSearch(ctx context.Context, in *SearchRequest, 
 	return out, nil
 }
 
+func (c *flibustierClient) CheckUpdates(ctx context.Context, in *UpdateCheckRequest, opts ...grpc.CallOption) (*UpdateCheckResponse, error) {
+	out := new(UpdateCheckResponse)
+	err := c.cc.Invoke(ctx, "/flibustier.Flibustier/CheckUpdates", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FlibustierServer is the server API for Flibustier service.
 // All implementations must embed UnimplementedFlibustierServer
 // for forward compatibility
 type FlibustierServer interface {
 	GlobalSearch(context.Context, *SearchRequest) (*SearchResponse, error)
+	CheckUpdates(context.Context, *UpdateCheckRequest) (*UpdateCheckResponse, error)
 	mustEmbedUnimplementedFlibustierServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedFlibustierServer struct {
 
 func (UnimplementedFlibustierServer) GlobalSearch(context.Context, *SearchRequest) (*SearchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GlobalSearch not implemented")
+}
+func (UnimplementedFlibustierServer) CheckUpdates(context.Context, *UpdateCheckRequest) (*UpdateCheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckUpdates not implemented")
 }
 func (UnimplementedFlibustierServer) mustEmbedUnimplementedFlibustierServer() {}
 
@@ -84,6 +98,24 @@ func _Flibustier_GlobalSearch_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Flibustier_CheckUpdates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FlibustierServer).CheckUpdates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flibustier.Flibustier/CheckUpdates",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FlibustierServer).CheckUpdates(ctx, req.(*UpdateCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Flibustier_ServiceDesc is the grpc.ServiceDesc for Flibustier service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -94,6 +126,10 @@ var Flibustier_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GlobalSearch",
 			Handler:    _Flibustier_GlobalSearch_Handler,
+		},
+		{
+			MethodName: "CheckUpdates",
+			Handler:    _Flibustier_CheckUpdates_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

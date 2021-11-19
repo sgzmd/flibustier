@@ -82,6 +82,30 @@ func TestSearchSeries(t *testing.T) {
 	assert.Equal(t, result.Entry[0].EntryName, "Унесенный ветром")
 }
 
+func TestCheckUpdates(t *testing.T) {
+	books := []*pb.Book{&pb.Book{BookId: 452501, BookName: "Чужие маски"}}
+
+	tracked := &pb.TrackedEntry{
+		EntryType:  pb.EntryType_SERIES,
+		EntryName:  "Унесенный ветром",
+		EntryId:    34145,
+		NumEntries: 1,
+		UserId:     "123",
+		Book:       books,
+	}
+
+	request := pb.UpdateCheckRequest{
+		TrackedEntry: []*pb.TrackedEntry{tracked},
+	}
+
+	resp, err := client.CheckUpdates(context.Background(), &request)
+	if err != nil {
+		t.Fatalf("Failed: %v", err)
+	} else {
+		t.Errorf("Result: %s", resp.String())
+	}
+}
+
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 	// Creating a client
