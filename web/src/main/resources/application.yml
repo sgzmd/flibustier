@@ -30,6 +30,9 @@ server:
 
 flibusta:
   dburl: "jdbc:sqlite:../data/flibusta.db"
+  rpc:
+    host: "localhost"
+    port: 9000
 
 smtp:
   host: "smtp.gmail.com"

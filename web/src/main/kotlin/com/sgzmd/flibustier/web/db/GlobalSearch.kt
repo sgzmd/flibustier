@@ -1,12 +1,16 @@
 package com.sgzmd.flibustier.web.db
 
+import com.sgzmd.flibustier.proto.FlibustierGrpc
+import com.sgzmd.flibustier.proto.SearchRequest
+import com.sgzmd.flibustier.proto.SearchResponse
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@Component
+// @Component
 class GlobalSearch : IGlobalSearch {
-    @Autowired private lateinit var connectionProvider: ConnectionProvider
+    @Autowired
+    private lateinit var connectionProvider: ConnectionProvider
     private val logger = LoggerFactory.getLogger(GlobalSearch::class.java)
 
     data class SearchResult(
@@ -14,9 +18,10 @@ class GlobalSearch : IGlobalSearch {
         val name: String,
         val author: String,
         val entryId: Int,
-        val numEntities: Int)
+        val numEntities: Int
+    )
 
-    override fun search(searchTerm: String) : List<SearchResult> {
+    override fun search(searchTerm: String): List<SearchResult> {
         logger.info("Searching for '$searchTerm'")
 
         val series = getSeriesResults(searchTerm)
@@ -29,10 +34,11 @@ class GlobalSearch : IGlobalSearch {
         return result
     }
 
-    internal fun getAuthorResults(searchTerm: String) : List<SearchResult> {
+    internal fun getAuthorResults(searchTerm: String): List<SearchResult> {
         val authors = mutableListOf<SearchResult>()
         val statement = connectionProvider.connection?.createStatement()
-        val prs = connectionProvider.connection?.prepareStatement("""
+        val prs = connectionProvider.connection?.prepareStatement(
+            """
             select 
                 a.authorName, 
                 a.authorId,
@@ -47,7 +53,8 @@ class GlobalSearch : IGlobalSearch {
                 and la.BookId = lb.BookId
                 and lb.Deleted != '1'
             GROUP BY 1,2;
-            ;""".trimIndent())
+            ;""".trimIndent()
+        )
         prs?.setString(1, searchTerm + "*")
         val rs = prs?.executeQuery()
 
@@ -56,24 +63,29 @@ class GlobalSearch : IGlobalSearch {
         }
 
         while (rs.next()) {
-            authors.add(SearchResult(
+            authors.add(
+                SearchResult(
                     entryType = FoundEntryType.AUTHOR,
                     name = rs.getString("authorName"),
                     author = rs.getString("authorName"),
                     entryId = rs.getInt("authorId"),
-                    numEntities = rs.getInt("Count")))
+                    numEntities = rs.getInt("Count")
+                )
+            )
         }
 
         return authors
     }
 
     internal fun getSeriesResults(searchTerm: String): List<SearchResult> {
-        val prs = connectionProvider.connection?.prepareStatement("""select
+        val prs = connectionProvider.connection?.prepareStatement(
+            """select
         f.SeqName,
         f.Authors,
         f.SeqId,
         (select count(ls.BookId) from libseq ls where ls.SeqId = f.SeqId) NumBooks
-    from sequence_fts f where f.sequence_fts match ?""")
+    from sequence_fts f where f.sequence_fts match ?"""
+        )
         prs?.setString(1, searchTerm + "*")
         val rs = prs?.executeQuery()
 
@@ -83,12 +95,15 @@ class GlobalSearch : IGlobalSearch {
         }
 
         while (rs.next()) {
-            sequences.add(SearchResult(
+            sequences.add(
+                SearchResult(
                     FoundEntryType.SERIES,
                     rs.getString("SeqName"),
                     rs.getString("Authors"),
                     rs.getInt("SeqId"),
-                    rs.getInt("NumBooks")))
+                    rs.getInt("NumBooks")
+                )
+            )
         }
 
         return sequences
@@ -106,6 +121,33 @@ class GlobalSearch : IGlobalSearch {
 }
 
 @Component
+class GrpcGlobalSearch : IGlobalSearch {
+    @Autowired
+    private lateinit var connectionProvider: ConnectionProvider
+    private val logger = LoggerFactory.getLogger(GlobalSearch::class.java)
+
+    override fun search(searchTerm: String): List<GlobalSearch.SearchResult> {
+        val response = connectionProvider.flibustierServer?.globalSearch(
+            SearchRequest.newBuilder()
+                .setSearchTerm(searchTerm)
+                .build()
+        )
+
+        val res = response?.entryList?.map {
+            GlobalSearch.SearchResult(
+                EntryTypeConverter.fromProto(it.entryType),
+                it.entryName,
+                it.author,
+                it.entryId.toInt(), // safe because less than 4B entries
+                it.numEntities
+            )
+        }
+
+        return res?: emptyList()
+    }
+}
+
+@Component
 interface IGlobalSearch {
-    fun search(searchTerm: String) : List<GlobalSearch.SearchResult>
+    fun search(searchTerm: String): List<GlobalSearch.SearchResult>
 }
