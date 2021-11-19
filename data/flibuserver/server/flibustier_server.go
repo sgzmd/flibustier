@@ -10,6 +10,7 @@ import (
 	"os"
 
 	pb "flibustaimporter/flibuserver/proto"
+	"google.golang.org/grpc/reflection"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -157,6 +158,7 @@ func main() {
 	defer srv.Close()
 
 	pb.RegisterFlibustierServer(s, srv)
+	reflection.Register(s)
 	log.Printf("server listening at %v", lis.Addr())
 
 	if err := s.Serve(lis); err != nil {
