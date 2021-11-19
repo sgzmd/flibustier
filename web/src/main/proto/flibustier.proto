@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option go_package = "flibustaimporter/flibuserver/proto";
+option java_multiple_files = true;
+option java_package = "com.sgzmd.flibustier.proto";
+option java_outer_classname = "FlibustierProto";
+
+/*
+To compile:
+
+protoc --go_out=. --go_opt=paths=source_relative  --go-grpc_out=. --go-grpc_opt=paths=source_relative --kotlin_out=../../../web/src/main/kotlin/com/sgzmd/flibustier/proto --java_out=../../../web/src/main/java/com/sgzmd/flibustier/proto  flibustier.proto 
+*/
+
+package flibustier;
+
+service Flibustier {
+  rpc GlobalSearch (SearchRequest) returns (SearchResponse) {}
+}
+
+enum EntryType {
+  UNKNOWN = 0;
+  SERIES = 1;
+  AUTHOR = 2;
+  BOOK = 3;
+}
+
+message SearchRequest {
+  string search_term = 1;
+  EntryType entry_type_filter = 2;
+}
+
+message FoundEntry {
+  EntryType entry_type = 1;
+  string entry_name = 2;
+  string author = 3;
+  int64 entry_id = 4;
+  int32 num_entities = 5;
+}
+
+message SearchResponse {
+  SearchRequest original_request = 1;
+  repeated FoundEntry entry = 2;
+}
