@@ -70,15 +70,11 @@ fi
 cd $active_dir
 echo "Will be creating $flibusta_db_path"
 
-if [ ! -f "main" ]; then
-  go build cmd/downloader/main.go
-fi
-
 assert_exists awk
 assert_exists sqlite3
 
 # Downloading the files, this might take a while...
-./main
+./downloader
 
 if [ $? -ne 0 ]; then
     send_update $telegram_key $telegram_chat_id "File downloader has failed with error code $?"
