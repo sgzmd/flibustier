@@ -51,7 +51,6 @@ class GlobalSearch : IGlobalSearch {
         prs?.setString(1, searchTerm + "*")
         val rs = prs?.executeQuery()
 
-        val sequences = mutableListOf<SearchResult>()
         if (rs == null) {
             return emptyList()
         }
@@ -69,9 +68,6 @@ class GlobalSearch : IGlobalSearch {
     }
 
     internal fun getSeriesResults(searchTerm: String): List<SearchResult> {
-        var q = rewriteQuery(searchTerm)
-
-        val statement = connectionProvider.connection?.createStatement()
         val prs = connectionProvider.connection?.prepareStatement("""select
         f.SeqName,
         f.Authors,

@@ -47,6 +47,7 @@ class OAuth2LoginSecurityConfig : WebSecurityConfigurerAdapter() {
     val tokenResponseClient: OAuth2AccessTokenResponseClient<*> = mock(OAuth2AccessTokenResponseClient::class.java)
     `when`(tokenResponseClient.getTokenResponse(Mockito.any())).thenReturn(accessTokenResponse)
 
+    @Suppress("UNCHECKED_CAST")
     return tokenResponseClient as OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest?>?
   }
 
@@ -62,6 +63,8 @@ class OAuth2LoginSecurityConfig : WebSecurityConfigurerAdapter() {
     val user = DefaultOAuth2User(authorities, attributes, "email")
     val userService: OAuth2UserService<*, *> = mock(OAuth2UserService::class.java)
     `when`(userService.loadUser(Mockito.any())).thenReturn(user)
+
+    @Suppress("UNCHECKED_CAST")
     return userService as OAuth2UserService<OAuth2UserRequest?, OAuth2User?>?
   }
 }

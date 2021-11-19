@@ -45,7 +45,7 @@ class UpdateChecker(
         val entriesToBooks = mutableMapOf<TrackedEntry, List<Book>>()
         for (update in updates) {
           if (update.newBooks?.isNotEmpty() == true) {
-            entriesToBooks[update.entry] = update.newBooks!!
+            entriesToBooks[update.entry] = update.newBooks
           }
         }
 

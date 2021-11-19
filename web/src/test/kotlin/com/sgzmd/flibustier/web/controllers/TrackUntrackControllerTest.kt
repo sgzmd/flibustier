@@ -5,7 +5,6 @@ import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.db.entity.Book
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
-import junit.framework.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,6 +14,7 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringRunner
+import kotlin.test.assertEquals
 import com.google.common.truth.Truth.assertThat as assertThat
 
 
