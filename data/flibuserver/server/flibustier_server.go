@@ -126,15 +126,10 @@ func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.Se
 	}, nil
 }
 
-// In case I forgot what am I doing here:
-// Creating a curried function which takes a slice of books
-// and returns a comparator to be used with this slice for sort.SliceStable
-func CreateBookComparator(books []*pb.Book) func(int, int) bool {
-	return func(i, j int) bool {
-		return books[i].BookId < books[j].BookId
-	}
-}
-
+// Searches for updates in the collection of tracked entries.
+// Implementation is very straightforward and not very performant
+// but it's possible that it's good enough.
+// See: ../proto/flibustier.proto for proto definitions.
 func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*pb.UpdateCheckResponse, error) {
 	log.Printf("Received: %v", in)
 
