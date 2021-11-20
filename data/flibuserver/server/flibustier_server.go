@@ -148,50 +148,73 @@ func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*
 		return nil, err
 	}
 
+	sstm, err := s.Database.Prepare(`
+	select b.BookId, b.Title from libbook b, libseq s 
+	where s.BookId = b.BookId and s.SeqId = ?
+	`)
+	if err != nil {
+		return nil, err
+	}
+
 	// We will start with a very naive and simple implementation
 	for _, entry := range in.TrackedEntry {
+		var rs *sql.Rows
+		var err error
+
+		var statement *sql.Stmt
 		if entry.EntryType == pb.EntryType_AUTHOR {
-			rs, err := astm.Query(entry.EntryId)
-			if err != nil {
-				return nil, err
+			statement = astm
+		} else if entry.EntryType == pb.EntryType_SERIES {
+			statement = sstm
+		}
+
+		rs, err = statement.Query(entry.EntryId)
+		if err != nil {
+			return nil, err
+		}
+
+		if !rs.Next() {
+			return nil,
+				fmt.Errorf("exceptional situation: nothing was found for %v with EntryId %d",
+					statement,
+					entry.EntryId)
+		}
+
+		new_books := make([]*pb.Book, 0)
+
+		for rs.Next() {
+			var bookId int32
+			var title string
+			rs.Scan(&bookId, &title)
+
+			new_books = append(new_books, &pb.Book{BookName: title, BookId: bookId})
+		}
+
+		if entry.NumEntries != int32(len(new_books)) {
+			// If it is equal, no updates required
+
+			// sort.SliceStable(entry.Book, CreateBookComparator(entry.Book))
+			// sort.SliceStable(new_books, CreateBookComparator(new_books))
+			old_book_map := make(map[int]*pb.Book)
+			for _, b := range entry.Book {
+				old_book_map[int(b.BookId)] = b
 			}
 
-			new_books := make([]*pb.Book, 0)
-
-			for rs.Next() {
-				var bookId int32
-				var title string
-				rs.Scan(&bookId, &title)
-
-				new_books = append(new_books, &pb.Book{BookName: title, BookId: bookId})
+			newly_added_books := make([]*pb.Book, 0, len(new_books)-int(entry.NumEntries))
+			for _, b := range new_books {
+				_, exists := old_book_map[int(b.BookId)]
+				if !exists {
+					// Well we found the missing book
+					newly_added_books = append(newly_added_books, b)
+				}
 			}
 
-			if entry.NumEntries != int32(len(new_books)) {
-				// If it is equal, no updates required
-
-				// sort.SliceStable(entry.Book, CreateBookComparator(entry.Book))
-				// sort.SliceStable(new_books, CreateBookComparator(new_books))
-				old_book_map := make(map[int]*pb.Book)
-				for _, b := range entry.Book {
-					old_book_map[int(b.BookId)] = b
-				}
-
-				newly_added_books := make([]*pb.Book, 0, len(new_books)-int(entry.NumEntries))
-				for _, b := range new_books {
-					_, exists := old_book_map[int(b.BookId)]
-					if !exists {
-						// Well we found the missing book
-						newly_added_books = append(newly_added_books, b)
-					}
-				}
-
-				if len(newly_added_books) > 0 {
-					response = append(response, &pb.UpdateRequired{
-						TrackedEntry:  entry,
-						NewNumEntries: int32(len(new_books)),
-						NewBook:       newly_added_books,
-					})
-				}
+			if len(newly_added_books) > 0 {
+				response = append(response, &pb.UpdateRequired{
+					TrackedEntry:  entry,
+					NewNumEntries: int32(len(new_books)),
+					NewBook:       newly_added_books,
+				})
 			}
 		}
 	}

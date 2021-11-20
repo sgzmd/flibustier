@@ -103,9 +103,38 @@ func TestCheckUpdates_Author(t *testing.T) {
 		t.Fatalf("Failed: %v", err)
 	} else {
 		// t.Errorf("Result: %s", resp.String())
-		if len(resp.UpdateRequired) != 1 || resp.UpdateRequired[0].NewNumEntries != 10 {
+		if len(resp.UpdateRequired) != 1 || resp.UpdateRequired[0].NewNumEntries != 9 {
 			t.Fatalf(
-				"Expect to have 1 UpdateRequired entity with 10 new_num_entries, but have: %s",
+				"Expect to have 1 UpdateRequired entity with 9 new_num_entries, but have: %s",
+				resp)
+		}
+	}
+}
+
+func TestCheckUpdates_Series(t *testing.T) {
+	books := []*pb.Book{{BookId: 452501, BookName: "Чужие маски"}}
+
+	tracked := &pb.TrackedEntry{
+		EntryType:  pb.EntryType_SERIES,
+		EntryName:  "Унесенный ветром",
+		EntryId:    34145,
+		NumEntries: 1,
+		UserId:     "123",
+		Book:       books,
+	}
+
+	request := pb.UpdateCheckRequest{
+		TrackedEntry: []*pb.TrackedEntry{tracked},
+	}
+
+	resp, err := client.CheckUpdates(context.Background(), &request)
+	if err != nil {
+		t.Fatalf("Failed: %v", err)
+	} else {
+		// t.Errorf("Result: %s", resp.String())
+		if len(resp.UpdateRequired) != 1 || resp.UpdateRequired[0].NewNumEntries != 9 {
+			t.Fatalf(
+				"Expect to have 1 UpdateRequired entity with 9 new_num_entries, but have: %s",
 				resp)
 		}
 	}
