@@ -82,13 +82,13 @@ func TestSearchSeries(t *testing.T) {
 	assert.Equal(t, result.Entry[0].EntryName, "Унесенный ветром")
 }
 
-func TestCheckUpdates(t *testing.T) {
-	books := []*pb.Book{&pb.Book{BookId: 452501, BookName: "Чужие маски"}}
+func TestCheckUpdates_Author(t *testing.T) {
+	books := []*pb.Book{{BookId: 452501, BookName: "Чужие маски"}}
 
 	tracked := &pb.TrackedEntry{
-		EntryType:  pb.EntryType_SERIES,
-		EntryName:  "Унесенный ветром",
-		EntryId:    34145,
+		EntryType:  pb.EntryType_AUTHOR,
+		EntryName:  "Метельский",
+		EntryId:    109170,
 		NumEntries: 1,
 		UserId:     "123",
 		Book:       books,
@@ -102,7 +102,12 @@ func TestCheckUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed: %v", err)
 	} else {
-		t.Errorf("Result: %s", resp.String())
+		// t.Errorf("Result: %s", resp.String())
+		if len(resp.UpdateRequired) != 1 || resp.UpdateRequired[0].NewNumEntries != 10 {
+			t.Fatalf(
+				"Expect to have 1 UpdateRequired entity with 10 new_num_entries, but have: %s",
+				resp)
+		}
 	}
 }
 
