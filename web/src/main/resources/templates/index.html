@@ -51,15 +51,25 @@
             <div class="col-md-8">
                 <div th:if="${tracked != null && !tracked.empty}">
                     <h3>Отслеживаемые серии</h3>
-
-                    <div th:each="entry : ${tracked}">
-                        <span th:if="${entry.isSeries()}">
+                    <div th:each="entry : ${series}">
+                                            <span >
                             <a th:href="@{http://flibusta.is/sequence/{seqId}(seqId=${entry.entryId})}"
                                th:text="${entry.entryName}"/>
                             <span class="entry-type">Серия, <span th:text="${entry.numEntries}"/> книг</span>
                         </span>
+                        <a
+                                th:href="@{/untrack(id=${entry.id})}"
+                                class="untrack"
+                                data-toggle="tooltip"
+                                data-placement="bottom"
+                                title="Прекратить отслеживать обновления"><span>x</span></a>
 
-                        <span th:if="${entry.isAuthor()}">                            
+                    </div>
+
+                    <h3 style="margin-top: 1em;">Отслеживаемые авторы</h3>
+
+                    <div th:each="entry : ${authors}">
+                        <span>
                             <a th:href="@{http://flibusta.is/author/{authorId}(authorId=${entry.entryId})}"
                                th:text="${entry.entryName}"/>
                             <span class="entry-type">Автор, <span th:text="${entry.numEntries}"/> книг</span>
