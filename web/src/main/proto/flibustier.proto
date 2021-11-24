@@ -8,13 +8,17 @@ option java_outer_classname = "FlibustierProto";
 /*
 To compile:
 
-protoc --go_out=. --go_opt=paths=source_relative  --go-grpc_out=. --go-grpc_opt=paths=source_relative --kotlin_out=../../../web/src/main/kotlin/com/sgzmd/flibustier/proto --java_out=../../../web/src/main/java/com/sgzmd/flibustier/proto  flibustier.proto 
+protoc --go_out=. --go_opt=paths=source_relative  \
+  --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+  flibustier.proto 
+
 */
 
 package flibustier;
 
 service Flibustier {
   rpc GlobalSearch (SearchRequest) returns (SearchResponse) {}
+  rpc CheckUpdates (UpdateCheckRequest) returns (UpdateCheckResponse) {}
 }
 
 enum EntryType {
@@ -40,4 +44,33 @@ message FoundEntry {
 message SearchResponse {
   SearchRequest original_request = 1;
   repeated FoundEntry entry = 2;
+}
+
+message Book {
+  string book_name = 1;
+  int32 book_id = 2;
+}
+
+message TrackedEntry {
+  EntryType entry_type = 1;
+  string entry_name = 2;
+  int32 entry_id = 3;
+  int32 num_entries = 4;
+  string user_id = 5;
+
+  repeated Book book = 6;
+}
+
+message UpdateRequired {
+  TrackedEntry tracked_entry = 1;
+  int32 new_num_entries = 2;
+  repeated Book new_book = 3;
+}
+
+message UpdateCheckRequest {
+  repeated TrackedEntry tracked_entry = 1;
+}
+
+message UpdateCheckResponse {
+  repeated UpdateRequired update_required = 1;
 }
