@@ -1,3 +1,4 @@
 # Flibustier
 
-<img src="https://img.shields.io/github/workflow/status/sgzmd/flibustier/Java%20CI%20with%20Maven?style=for-the-badge"/>
+[![Java CI with Maven](https://github.com/sgzmd/flibustier/actions/workflows/maven.yml/badge.svg)](https://github.com/sgzmd/flibustier/actions/workflows/maven.yml)
+[![Go](https://github.com/sgzmd/flibustier/actions/workflows/go.yml/badge.svg)](https://github.com/sgzmd/flibustier/actions/workflows/go.yml)
