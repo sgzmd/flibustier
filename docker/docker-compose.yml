@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+  mariadb:
+    image: "mariadb:latest"
+    restart: always
+    ports:
+      - target: 3306
+        published: 3306
+        protocol: tcp
+        mode: host
+    volumes: 
+      - "/var/lib/mysql/data:${MARIADB_DATA_DIR}"
+      - "/var/lib/mysql/logs:${MARIADB_LOG_DIR}"
+      - /var/docker/mariadb/conf:/etc/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+  flibuserver:
+    build: ../data/
+    environment:
+      telegram_api_key: "${TELEGRAM_API_KEY}"
+      telegram_chat_id: "${TELEGRAM_CHAT_ID}"
+    ports: ["9000:9000"]
+  flibustier-web:
+    ports: ["8080:8080"]      
+    build: 
+      context: ../web      
+    environment:        
+      TELEGRAM_API_KEY: none
+      TELEGRAM_CHAT_ID: none
+      FLIBUSERVER_HOST: flibuserver
+      FLIBUSERVER_PORT: 9000
+      MARIA_HOST: mariadb
+      MARIA_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+  phpmyadmin:
+    ports:
+      - 8081:80
+    image: "phpmyadmin:latest"
+    links: 
+      - mariadb
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always      
