@@ -9,7 +9,7 @@ class FlibuserverInitializer(flibustaDb: String) {
 
     fun initializeFlibuserver() {
         logger.info("Initializing flibustier_server...")
-        _process = ProcessBuilder("../data/flibustier_server", "-port", "9000", "-flibusta_db",  _flibustaDb)
+        _process = ProcessBuilder("../data/flibustier_server", "-port", "9899", "-flibusta_db",  _flibustaDb)
             .redirectError(ProcessBuilder.Redirect.INHERIT)
             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
             .start()

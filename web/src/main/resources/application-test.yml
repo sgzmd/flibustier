@@ -30,4 +30,7 @@ dev:
 
 flibusta:
   dburl: "jdbc:sqlite:../testutils/flibusta-test.db"
+  rpc:
+    host: "localhost"
+    port: 9899
 
