@@ -1,5 +1,8 @@
 version: "3"
 
+volumes:
+  database:
+
 services:
   mariadb:
     image: "mariadb:latest"
@@ -10,9 +13,9 @@ services:
         protocol: tcp
         mode: host
     volumes: 
-      - "/var/lib/mysql/data:${MARIADB_DATA_DIR}"
-      - "/var/lib/mysql/logs:${MARIADB_LOG_DIR}"
-      - /var/docker/mariadb/conf:/etc/mysql
+      - database:${MARIADB_DATA_DIR}
+      - database:${MARIADB_LOG_DIR}
+      - database:/etc/mysql
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
