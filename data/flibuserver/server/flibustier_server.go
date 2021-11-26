@@ -218,6 +218,72 @@ func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*
 	return &pb.UpdateCheckResponse{UpdateRequired: response}, nil
 }
 
+func GetEntityBooks(sql *sql.Stmt, entityId int32) ([]*pb.Book, error) {
+	rs, err := sql.Query(entityId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	books := make([]*pb.Book, 0)
+	for rs.Next() {
+		var bookTitle string
+		var bookId int32
+
+		rs.Scan(&bookTitle, &bookId)
+		books = append(books, &pb.Book{BookId: bookId, BookName: bookTitle})
+	}
+
+	return books, nil
+}
+
+func (s *server) GetAuthorBooks(ctx context.Context, in *pb.AuthorBooksRequest) (*pb.EntityBookResponse, error) {
+	log.Printf("GetAuthorBooks: %+v", in)
+	sql, err := s.Database.Prepare(`
+		select 
+		  lb.Title,
+		  lb.Bookid
+		from libbook lb, libavtor la, author_fts a
+		where la.BookId = lb.BookId 
+		and a.authorId = la.AvtorId
+		and lb.Deleted != '1'
+		and la.AvtorId = ?
+		group by la.BookId order by la.BookId;`)
+
+	if err != nil {
+		return nil, err
+	}
+	books, err := GetEntityBooks(sql, in.AuthorId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.EntityBookResponse{Book: books, EntityId: in.AuthorId}, nil
+}
+
+func (s *server) GetSeriesBooks(ctx context.Context, in *pb.SequenceBooksRequest) (*pb.EntityBookResponse, error) {
+	log.Printf("GetSeriesBooks: %+v", in)
+
+	sql, err := s.Database.Prepare(`
+		SELECT b.Title, b.BookId
+		FROM libseq ls, libseqname lsn , libbook b
+		WHERE ls.seqId = lsn.seqId and ls.seqId = ? and ls.BookId = b.BookId and b.Deleted != '1'
+				  group by b.BookId
+				  order by ls.SeqNumb;`)
+
+	if err != nil {
+		return nil, err
+	}
+	books, err := GetEntityBooks(sql, in.SequenceId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.EntityBookResponse{Book: books, EntityId: in.SequenceId}, nil
+}
+
 func (s *server) Close() {
 	log.Println("Closing database connection.")
 	s.Database.Close()

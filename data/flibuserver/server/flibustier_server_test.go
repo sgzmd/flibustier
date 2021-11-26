@@ -140,6 +140,33 @@ func TestCheckUpdates_Series(t *testing.T) {
 	}
 }
 
+func TestServer_GetSeriesBooks(t *testing.T) {
+	req := &pb.SequenceBooksRequest{SequenceId: 34145}
+	resp, err := client.GetSeriesBooks(context.Background(), req)
+	if err != nil {
+		t.Fatalf("Failed: %+v", err)
+	} else {
+		assert.Equal(t, req.SequenceId, resp.EntityId)
+		assert.Len(t, resp.Book, 8)
+
+		assert.Equal(t, "Унесенный ветром: Меняя маски. Теряя маски. Чужие маски", resp.Book[0].BookName)
+	}
+}
+
+func TestServer_GetAuthorBooks(t *testing.T) {
+	req := &pb.AuthorBooksRequest{AuthorId: 109170}
+	resp, err := client.GetAuthorBooks(context.Background(), req)
+	if err != nil {
+		t.Fatalf("Failed: %+v", err)
+	} else {
+		assert.Equal(t, req.AuthorId, resp.EntityId)
+		assert.Len(t, resp.Book, 8)
+
+		assert.Equal(t, "Чужие маски", resp.Book[0].BookName)
+	}
+}
+
+
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 	// Creating a client

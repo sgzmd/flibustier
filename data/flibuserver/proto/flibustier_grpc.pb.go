@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 type FlibustierClient interface {
 	GlobalSearch(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
 	CheckUpdates(ctx context.Context, in *UpdateCheckRequest, opts ...grpc.CallOption) (*UpdateCheckResponse, error)
+	GetSeriesBooks(ctx context.Context, in *SequenceBooksRequest, opts ...grpc.CallOption) (*EntityBookResponse, error)
+	GetAuthorBooks(ctx context.Context, in *AuthorBooksRequest, opts ...grpc.CallOption) (*EntityBookResponse, error)
 }
 
 type flibustierClient struct {
@@ -48,12 +50,32 @@ func (c *flibustierClient) CheckUpdates(ctx context.Context, in *UpdateCheckRequ
 	return out, nil
 }
 
+func (c *flibustierClient) GetSeriesBooks(ctx context.Context, in *SequenceBooksRequest, opts ...grpc.CallOption) (*EntityBookResponse, error) {
+	out := new(EntityBookResponse)
+	err := c.cc.Invoke(ctx, "/flibustier.Flibustier/GetSeriesBooks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *flibustierClient) GetAuthorBooks(ctx context.Context, in *AuthorBooksRequest, opts ...grpc.CallOption) (*EntityBookResponse, error) {
+	out := new(EntityBookResponse)
+	err := c.cc.Invoke(ctx, "/flibustier.Flibustier/GetAuthorBooks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FlibustierServer is the server API for Flibustier service.
 // All implementations must embed UnimplementedFlibustierServer
 // for forward compatibility
 type FlibustierServer interface {
 	GlobalSearch(context.Context, *SearchRequest) (*SearchResponse, error)
 	CheckUpdates(context.Context, *UpdateCheckRequest) (*UpdateCheckResponse, error)
+	GetSeriesBooks(context.Context, *SequenceBooksRequest) (*EntityBookResponse, error)
+	GetAuthorBooks(context.Context, *AuthorBooksRequest) (*EntityBookResponse, error)
 	mustEmbedUnimplementedFlibustierServer()
 }
 
@@ -66,6 +88,12 @@ func (UnimplementedFlibustierServer) GlobalSearch(context.Context, *SearchReques
 }
 func (UnimplementedFlibustierServer) CheckUpdates(context.Context, *UpdateCheckRequest) (*UpdateCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckUpdates not implemented")
+}
+func (UnimplementedFlibustierServer) GetSeriesBooks(context.Context, *SequenceBooksRequest) (*EntityBookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSeriesBooks not implemented")
+}
+func (UnimplementedFlibustierServer) GetAuthorBooks(context.Context, *AuthorBooksRequest) (*EntityBookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthorBooks not implemented")
 }
 func (UnimplementedFlibustierServer) mustEmbedUnimplementedFlibustierServer() {}
 
@@ -116,6 +144,42 @@ func _Flibustier_CheckUpdates_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Flibustier_GetSeriesBooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SequenceBooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FlibustierServer).GetSeriesBooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flibustier.Flibustier/GetSeriesBooks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FlibustierServer).GetSeriesBooks(ctx, req.(*SequenceBooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Flibustier_GetAuthorBooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorBooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FlibustierServer).GetAuthorBooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flibustier.Flibustier/GetAuthorBooks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FlibustierServer).GetAuthorBooks(ctx, req.(*AuthorBooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Flibustier_ServiceDesc is the grpc.ServiceDesc for Flibustier service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +194,14 @@ var Flibustier_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckUpdates",
 			Handler:    _Flibustier_CheckUpdates_Handler,
+		},
+		{
+			MethodName: "GetSeriesBooks",
+			Handler:    _Flibustier_GetSeriesBooks_Handler,
+		},
+		{
+			MethodName: "GetAuthorBooks",
+			Handler:    _Flibustier_GetAuthorBooks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
