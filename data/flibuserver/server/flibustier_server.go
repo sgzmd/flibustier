@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	pb "flibustaimporter/flibuserver/proto"
 
@@ -24,8 +25,8 @@ type server struct {
 }
 
 var (
-	port        = flag.Int("port", 9000, "RPC server port")
-	flibusta_db = flag.String("flibusta_db", "", "Path to Flibusta SQLite3 database")
+	port       = flag.Int("port", 9000, "RPC server port")
+	flibustaDb = flag.String("flibusta_db", "", "Path to Flibusta SQLite3 database")
 )
 
 func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
@@ -126,7 +127,7 @@ func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.Se
 	}, nil
 }
 
-// Searches for updates in the collection of tracked entries.
+// CheckUpdates Searches for updates in the collection of tracked entries.
 // Implementation is very straightforward and not very performant
 // but it's possible that it's good enough.
 // See: ../proto/flibustier.proto for proto definitions.
@@ -175,40 +176,40 @@ func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*
 					entry.EntryId)
 		}
 
-		new_books := make([]*pb.Book, 0)
+		newBooks := make([]*pb.Book, 0)
 
 		for rs.Next() {
 			var bookId int32
 			var title string
 			rs.Scan(&bookId, &title)
 
-			new_books = append(new_books, &pb.Book{BookName: title, BookId: bookId})
+			newBooks = append(newBooks, &pb.Book{BookName: title, BookId: bookId})
 		}
 
-		if entry.NumEntries != int32(len(new_books)) {
+		if entry.NumEntries != int32(len(newBooks)) {
 			// If it is equal, no updates required
 
 			// sort.SliceStable(entry.Book, CreateBookComparator(entry.Book))
 			// sort.SliceStable(new_books, CreateBookComparator(new_books))
-			old_book_map := make(map[int]*pb.Book)
+			oldBookMap := make(map[int]*pb.Book)
 			for _, b := range entry.Book {
-				old_book_map[int(b.BookId)] = b
+				oldBookMap[int(b.BookId)] = b
 			}
 
-			newly_added_books := make([]*pb.Book, 0, len(new_books)-int(entry.NumEntries))
-			for _, b := range new_books {
-				_, exists := old_book_map[int(b.BookId)]
+			newlyAddedBooks := make([]*pb.Book, 0, len(newBooks)-int(entry.NumEntries))
+			for _, b := range newBooks {
+				_, exists := oldBookMap[int(b.BookId)]
 				if !exists {
 					// Well we found the missing book
-					newly_added_books = append(newly_added_books, b)
+					newlyAddedBooks = append(newlyAddedBooks, b)
 				}
 			}
 
-			if len(newly_added_books) > 0 {
+			if len(newlyAddedBooks) > 0 {
 				response = append(response, &pb.UpdateRequired{
 					TrackedEntry:  entry,
-					NewNumEntries: int32(len(new_books)),
-					NewBook:       newly_added_books,
+					NewNumEntries: int32(len(newBooks)),
+					NewBook:       newlyAddedBooks,
 				})
 			}
 		}
@@ -222,10 +223,14 @@ func (s *server) Close() {
 	s.Database.Close()
 }
 
+func OpenDatabase(db_path string) (*sql.DB, error) {
+	return sql.Open("sqlite3", db_path)
+}
+
 func NewServer(db_path string) (*server, error) {
 	srv := new(server)
 
-	db, err := sql.Open("sqlite3", db_path)
+	db, err := OpenDatabase(db_path)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +247,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	srv, err := NewServer(*flibusta_db)
+	srv, err := NewServer(*flibustaDb)
 	if err != nil {
 		log.Fatalf("Couldn't create server: %v", err)
 		os.Exit(2)
@@ -252,6 +257,21 @@ func main() {
 	pb.RegisterFlibustierServer(s, srv)
 	reflection.Register(s)
 	log.Printf("server listening at %v", lis.Addr())
+
+	ticker := time.NewTicker(10 * time.Minute)
+	go func() {
+		for range ticker.C {
+			log.Printf("Re-opening database ...")
+			db, err := OpenDatabase(*flibustaDb)
+			if err != nil {
+				log.Fatalf("Failed to open database: %s", err)
+				os.Exit(1)
+			}
+
+			srv.Database = db
+			log.Printf("Database re-opened.")
+		}
+	}()
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

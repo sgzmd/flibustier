@@ -1,19 +1,7 @@
 #!/usr/bin/env bash
 
-# Run this script as
-#   ./run_dev.sh <google-client-id> <google-client-secret>
-
-# GOOGLE_CLIENT_ID="${1:-error}"
-# GOOGLE_CLIENT_SECRET="${2:-error}"
-# FLIBUSERVER_HOST="${3:-error}"
-# FLIBUSERVER_PORT="${4:-error}"
-# MARIA_HOST="${5:-error}"
-# MARIA_PORT="${6:-error}"
-# MARIA_DATABASE="${7:-error}"
-# MARIA_USER="${8:-error}"
-# MARIA_PASSWORD="${9:-error}"
-
 startup_options=( 
+-Djava.security.egd=file:/dev/./urandom
 -Dspring.jpa.hibernate.ddl-auto=update
 -Dlogging.file=/var/log/flibustier.log
 -Dspring.profiles.active=prod
@@ -32,9 +20,7 @@ startup_options=(
 -Dsmtp.password=$SMTP_PASSWORD
 )
 
-CMD="java ${startup_options[*]} -jar app.jar"
+CMD="java -XX:MaxMetaspaceSize=128M ${startup_options[*]} -jar app.jar"
 echo $CMD
 
 $CMD
-
-sleep 10m

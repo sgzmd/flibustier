@@ -12,7 +12,6 @@ ENV MYSQL_PASSWORD ""
 ENV GOOGLE_CLIENT_ID ""
 ENV GOOGLE_CLIENT_SECRET ""
 
-RUN mvn package
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} app.jar
 COPY ./run_flibustier.sh ./run_flibustier.sh

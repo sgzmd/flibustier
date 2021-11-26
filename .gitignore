@@ -32,3 +32,5 @@ h2.db.mv.db
 .DS_Store
 *.DS_Store
 tmp/
+data/flibusta_mysql_dump.sql
+.gitignore
