@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 	"time"
 
 	pb "flibustaimporter/flibuserver/proto"
@@ -22,6 +23,7 @@ import (
 type server struct {
 	pb.UnimplementedFlibustierServer
 	Database *sql.DB
+	Lock sync.RWMutex
 }
 
 var (
@@ -31,6 +33,10 @@ var (
 
 func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
 	log.Printf("Searching for author: %s", req)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
+
 	sql := CreateAuthorSearchQuery(req.SearchTerm)
 
 	rows, err := s.Database.Query(sql)
@@ -66,6 +72,10 @@ func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) 
 
 func (s *server) SearchSeries(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
 	log.Printf("Searching for series: %s", req)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
+
 	sql := CreateSequenceSearchQuery(req.SearchTerm)
 	rows, err := s.Database.Query(sql)
 
@@ -102,6 +112,9 @@ func (s *server) SearchSeries(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
 func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.SearchResponse, error) {
 	log.Printf("Received: %v", in.GetSearchTerm())
 
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
+
 	var entries []*pb.FoundEntry = make([]*pb.FoundEntry, 0, 10)
 
 	// If there's no filter for series
@@ -133,6 +146,9 @@ func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.Se
 // See: ../proto/flibustier.proto for proto definitions.
 func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*pb.UpdateCheckResponse, error) {
 	log.Printf("Received: %v", in)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
 
 	response := make([]*pb.UpdateRequired, 0)
 
@@ -239,6 +255,10 @@ func GetEntityBooks(sql *sql.Stmt, entityId int32) ([]*pb.Book, error) {
 
 func (s *server) GetAuthorBooks(ctx context.Context, in *pb.AuthorBooksRequest) (*pb.EntityBookResponse, error) {
 	log.Printf("GetAuthorBooks: %+v", in)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
+
 	sql, err := s.Database.Prepare(`
 		select 
 		  lb.Title,
@@ -264,6 +284,9 @@ func (s *server) GetAuthorBooks(ctx context.Context, in *pb.AuthorBooksRequest) 
 
 func (s *server) GetSeriesBooks(ctx context.Context, in *pb.SequenceBooksRequest) (*pb.EntityBookResponse, error) {
 	log.Printf("GetSeriesBooks: %+v", in)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
 
 	sql, err := s.Database.Prepare(`
 		SELECT b.Title, b.BookId
@@ -328,7 +351,9 @@ func main() {
 	go func() {
 		for range ticker.C {
 			log.Printf("Re-opening database ...")
+			srv.Lock.Lock()
 			db, err := OpenDatabase(*flibustaDb)
+			srv.Lock.Unlock()
 			if err != nil {
 				log.Fatalf("Failed to open database: %s", err)
 				os.Exit(1)
