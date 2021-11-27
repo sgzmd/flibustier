@@ -150,6 +150,7 @@ func TestServer_GetSeriesBooks(t *testing.T) {
 		assert.Len(t, resp.Book, 8)
 
 		assert.Equal(t, "Унесенный ветром: Меняя маски. Теряя маски. Чужие маски", resp.Book[0].BookName)
+		assert.Equal(t, "Унесенный ветром", resp.EntityName.GetSequenceName())
 	}
 }
 
@@ -163,9 +164,12 @@ func TestServer_GetAuthorBooks(t *testing.T) {
 		assert.Len(t, resp.Book, 8)
 
 		assert.Equal(t, "Чужие маски", resp.Book[0].BookName)
+		assert.Equal(t, &pb.AuthorName{
+			LastName:   "Метельский",
+			MiddleName: "Александрович",
+			FirstName:  "Николай"}, resp.EntityName.GetAuthorName())
 	}
 }
-
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()

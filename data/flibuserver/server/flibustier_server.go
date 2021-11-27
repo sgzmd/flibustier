@@ -23,7 +23,7 @@ import (
 type server struct {
 	pb.UnimplementedFlibustierServer
 	Database *sql.DB
-	Lock sync.RWMutex
+	Lock     sync.RWMutex
 }
 
 var (
@@ -279,7 +279,31 @@ func (s *server) GetAuthorBooks(ctx context.Context, in *pb.AuthorBooksRequest) 
 		return nil, err
 	}
 
-	return &pb.EntityBookResponse{Book: books, EntityId: in.AuthorId}, nil
+	sql, err = s.Database.Prepare(`
+		select an.FirstName, an.MiddleName, an.LastName 
+		from libavtorname an
+		where an.AvtorId = ?`)
+	if err != nil {
+		return nil, err
+	}
+	rs, err := sql.Query(in.AuthorId)
+	if err != nil {
+		return nil, err
+	}
+
+	if rs.Next() {
+		var firstName, middleName, lastName string
+		rs.Scan(&firstName, &middleName, &lastName)
+		name := &pb.EntityName{Name: &pb.EntityName_AuthorName{
+			AuthorName: &pb.AuthorName{
+				FirstName:  firstName,
+				MiddleName: middleName,
+				LastName:   lastName}}}
+
+		return &pb.EntityBookResponse{Book: books, EntityId: in.AuthorId, EntityName: name}, nil
+	}
+
+	return nil, fmt.Errorf("no author associated with id %d", in.AuthorId)
 }
 
 func (s *server) GetSeriesBooks(ctx context.Context, in *pb.SequenceBooksRequest) (*pb.EntityBookResponse, error) {
@@ -304,7 +328,19 @@ func (s *server) GetSeriesBooks(ctx context.Context, in *pb.SequenceBooksRequest
 		return nil, err
 	}
 
-	return &pb.EntityBookResponse{Book: books, EntityId: in.SequenceId}, nil
+	rs, err := s.Database.Query("select SeqName from libseqname where SeqId = ?", in.SequenceId)
+	if err != nil {
+		return nil, err
+	}
+	if rs.Next() {
+		var seqName string
+		rs.Scan(&seqName)
+		name := &pb.EntityName{Name: &pb.EntityName_SequenceName{SequenceName: seqName}}
+
+		return &pb.EntityBookResponse{Book: books, EntityId: in.SequenceId, EntityName: name}, nil
+	}
+
+	return nil, fmt.Errorf("no series associated with id %d", in.SequenceId)
 }
 
 func (s *server) Close() {

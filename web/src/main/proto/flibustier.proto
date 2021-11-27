@@ -88,4 +88,18 @@ message AuthorBooksRequest {
 message EntityBookResponse {
   int32 entity_id = 1;
   repeated Book book = 2;
+  EntityName entity_name = 3;
+}
+
+message AuthorName {
+  string first_name = 1;
+  string middle_name = 2;
+  string last_name = 3;
+}
+
+message EntityName {
+  oneof name {
+    AuthorName author_name = 1;
+    string sequence_name = 2;
+  }
 }
