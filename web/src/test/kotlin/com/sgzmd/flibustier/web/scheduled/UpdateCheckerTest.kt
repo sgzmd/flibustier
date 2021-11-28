@@ -48,9 +48,6 @@ internal class UpdateCheckerTest {
   @Value("\${flibusta.dburl}")
   lateinit var dbUrl: String
 
-  @Autowired
-  lateinit var connectionProvider: ConnectionProvider
-
   lateinit var entryUpdateProvider: IEntryUpdateStatusProvider
 
   @Before
@@ -78,7 +75,7 @@ internal class UpdateCheckerTest {
       )
 
     val updateChecker =
-      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
+      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl)
     updateChecker.checkUpdates()
 
     val captor = ArgumentCaptor.forClass(Update::class.java)
@@ -105,7 +102,7 @@ internal class UpdateCheckerTest {
       )
 
     val updateChecker =
-      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
+      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl)
     updateChecker.checkUpdates()
 
     val captor = ArgumentCaptor.forClass(Update::class.java)
@@ -149,7 +146,7 @@ internal class UpdateCheckerTest {
       )
 
     val updateChecker =
-      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl, connectionProvider)
+      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl)
     updateChecker.checkUpdates()
 
     val captor = ArgumentCaptor.forClass(Update::class.java)

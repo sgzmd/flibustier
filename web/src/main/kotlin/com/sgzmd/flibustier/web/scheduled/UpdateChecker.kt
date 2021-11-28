@@ -19,8 +19,7 @@ class UpdateChecker(
     @Autowired val trackedEntryRepository: TrackedEntryRepository,
     @Autowired val entryUpdateStatusProvider: IEntryUpdateStatusProvider,
     @Autowired val updateNotifier: UserNotifier,
-    @Autowired @Value("\${flibusta.dburl}") val dbUrl: String,
-    @Autowired val connectionProvider: ConnectionProvider) {
+    @Autowired @Value("\${flibusta.dburl}") val dbUrl: String) {
 
   val logger = LoggerFactory.getLogger(UpdateChecker::class.java)
   val auditLog = LoggerFactory.getLogger("audit")
@@ -29,8 +28,6 @@ class UpdateChecker(
     logger.info("Starting update checker ...")
 
     auditLog.info("Starting update checker")
-    auditDataFile()
-
     val trackedEntries = trackedEntryRepository.findAll().toList()
 
     auditLog.info("There are ${trackedEntries.size} in tracked entries")
@@ -53,22 +50,6 @@ class UpdateChecker(
           updateNotifier.notifyUser(Update(userId, entriesToBooks))
         }
       }
-    }
-  }
-
-  internal fun auditDataFile() {
-    val dbFilePath = dbUrl.split(":").last()
-    val lastModifiedObject = LocalDateTime.ofInstant(
-        Instant.ofEpochMilli(File(dbFilePath).lastModified()),
-        ZoneId.of("UTC"))
-
-    auditLog.info("DB file ${File(dbFilePath)} was last modified on $lastModifiedObject")
-    val prs = connectionProvider.connection?.prepareStatement("select count(1) from libbook")
-    val rs = prs?.executeQuery()
-
-    if (rs?.next()!!) {
-      val count = rs.getInt(1)
-      auditLog.info("There are $count entries in libbook")
     }
   }
 }

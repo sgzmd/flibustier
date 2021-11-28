@@ -9,7 +9,6 @@ startup_options=(
 -Dflibusta.rpc.host=$FLIBUSERVER_HOST
 -Dflibusta.rpc.port=$FLIBUSERVER_PORT
 -Dspring.datasource.url=jdbc:mysql://$MARIA_HOST:$MARIA_PORT/$MYSQL_DATABASE
--Dspring.jpa.hibernate.ddl-auto=create
 -Dspring.datasource.driver-class-name=org.mariadb.jdbc.Driver
 -Dspring.datasource.username=$MYSQL_USER
 -Dspring.datasource.password=$MYSQL_PASSWORD
