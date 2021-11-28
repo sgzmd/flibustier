@@ -13,6 +13,9 @@ import (
 
 	pb "flibustaimporter/flibuserver/proto"
 
+	badger "github.com/dgraph-io/badger/v3"
+	"github.com/golang/protobuf/proto"
+
 	"google.golang.org/grpc/reflection"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -22,13 +25,15 @@ import (
 
 type server struct {
 	pb.UnimplementedFlibustierServer
-	Database *sql.DB
+	sqliteDb *sql.DB
+	data     *badger.DB
 	Lock     sync.RWMutex
 }
 
 var (
 	port       = flag.Int("port", 9000, "RPC server port")
 	flibustaDb = flag.String("flibusta_db", "", "Path to Flibusta SQLite3 database")
+	datastore  = flag.String("datastore", "", "Path to the data store to use")
 )
 
 func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
@@ -39,7 +44,7 @@ func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) 
 
 	sql := CreateAuthorSearchQuery(req.SearchTerm)
 
-	rows, err := s.Database.Query(sql)
+	rows, err := s.sqliteDb.Query(sql)
 
 	if err != nil {
 		return nil, err
@@ -77,7 +82,7 @@ func (s *server) SearchSeries(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
 	defer s.Lock.RUnlock()
 
 	sql := CreateSequenceSearchQuery(req.SearchTerm)
-	rows, err := s.Database.Query(sql)
+	rows, err := s.sqliteDb.Query(sql)
 
 	if err != nil {
 		return nil, err
@@ -152,7 +157,7 @@ func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*
 
 	response := make([]*pb.UpdateRequired, 0)
 
-	astm, err := s.Database.Prepare(`
+	astm, err := s.sqliteDb.Prepare(`
 		select b.BookId, b.Title from libbook b, libavtor a 
 		where b.BookId = a.BookId and a.AvtorId = ?`)
 
@@ -160,7 +165,7 @@ func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*
 		return nil, err
 	}
 
-	sstm, err := s.Database.Prepare(`
+	sstm, err := s.sqliteDb.Prepare(`
 	select b.BookId, b.Title from libbook b, libseq s 
 	where s.BookId = b.BookId and s.SeqId = ?
 	`)
@@ -259,7 +264,7 @@ func (s *server) GetAuthorBooks(ctx context.Context, in *pb.AuthorBooksRequest) 
 	s.Lock.RLock()
 	defer s.Lock.RUnlock()
 
-	sql, err := s.Database.Prepare(`
+	sql, err := s.sqliteDb.Prepare(`
 		select 
 		  lb.Title,
 		  lb.Bookid
@@ -279,7 +284,7 @@ func (s *server) GetAuthorBooks(ctx context.Context, in *pb.AuthorBooksRequest) 
 		return nil, err
 	}
 
-	sql, err = s.Database.Prepare(`
+	sql, err = s.sqliteDb.Prepare(`
 		select an.FirstName, an.MiddleName, an.LastName 
 		from libavtorname an
 		where an.AvtorId = ?`)
@@ -312,7 +317,7 @@ func (s *server) GetSeriesBooks(ctx context.Context, in *pb.SequenceBooksRequest
 	s.Lock.RLock()
 	defer s.Lock.RUnlock()
 
-	sql, err := s.Database.Prepare(`
+	sql, err := s.sqliteDb.Prepare(`
 		SELECT b.Title, b.BookId
 		FROM libseq ls, libseqname lsn , libbook b
 		WHERE ls.seqId = lsn.seqId and ls.seqId = ? and ls.BookId = b.BookId and b.Deleted != '1'
@@ -328,7 +333,7 @@ func (s *server) GetSeriesBooks(ctx context.Context, in *pb.SequenceBooksRequest
 		return nil, err
 	}
 
-	rs, err := s.Database.Query("select SeqName from libseqname where SeqId = ?", in.SequenceId)
+	rs, err := s.sqliteDb.Query("select SeqName from libseqname where SeqId = ?", in.SequenceId)
 	if err != nil {
 		return nil, err
 	}
@@ -343,25 +348,154 @@ func (s *server) GetSeriesBooks(ctx context.Context, in *pb.SequenceBooksRequest
 	return nil, fmt.Errorf("no series associated with id %d", in.SequenceId)
 }
 
+func (s *server) TrackEntry(ctx context.Context, entry *pb.TrackedEntry) (*pb.TrackEntryResponse, error) {
+	log.Printf("TrackEntry: %+v", entry)
+	key := pb.TrackedEntryKey{EntityType: entry.EntryType, EntityId: entry.EntryId, UserId: entry.UserId}
+	alreadyTracked := false
+	err := s.data.View(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+		prefix, err := proto.Marshal(&key)
+		if err != nil {
+			return err
+		}
+
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			alreadyTracked = true
+			return nil
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if alreadyTracked {
+		return &pb.TrackEntryResponse{Key: &key, Result: pb.TrackEntryResult_TRACK_ALREADY_TRACKED}, nil
+	}
+
+	s.data.Update(func(txn *badger.Txn) error {
+		key, err := proto.Marshal(&key)
+		if err != nil {
+			return err
+		}
+
+		value, err := proto.Marshal(entry)
+		if err != nil {
+			return err
+		}
+
+		return txn.Set(key, value)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.TrackEntryResponse{Key: &key, Result: pb.TrackEntryResult_TRACK_OK}, nil
+}
+
+func (s *server) ListTrackedEntries(ctx context.Context, req *pb.ListTrackedEntriesRequest) (*pb.ListTrackedEntriesResponse, error) {
+	log.Printf("ListTrackedEntries: %+v", req)
+	entries := make([]*pb.TrackedEntry, 0)
+	err := s.data.View(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+
+		for it.Rewind(); it.Valid(); it.Next() {
+			marshalledValue := []byte{}
+			key := &pb.TrackedEntryKey{}
+
+			err := proto.Unmarshal(it.Item().Key(), key)
+			if err != nil {
+				return err
+			}
+
+			// This isn't really efficient, we should use prefix scan
+			if key.UserId != req.UserId {
+				continue
+			}
+
+			err = it.Item().Value(func(val []byte) error {
+				marshalledValue = val
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+
+			trackedEntry := pb.TrackedEntry{}
+			err = proto.Unmarshal(marshalledValue, &trackedEntry)
+			if err != nil {
+				return err
+			}
+			entries = append(entries, &trackedEntry)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.ListTrackedEntriesResponse{Entry: entries}, nil
+}
+
+func (s *server) UntrackEntry(ctx context.Context, req *pb.TrackedEntryKey) (*pb.UntrackEntryResponse, error) {
+	log.Printf("UntrackEntry: %+v", req)
+	err := s.data.Update(func(txn *badger.Txn) error {
+		key, err := proto.Marshal(req)
+		if err != nil {
+			return nil
+		}
+
+		return txn.Delete(key)
+	})
+	if err != nil {
+		return nil, err
+	} else {
+		return &pb.UntrackEntryResponse{Key: req, Result: pb.UntrackEntryResult_UNTRACK_OK}, nil
+	}
+}
+
 func (s *server) Close() {
 	log.Println("Closing database connection.")
-	s.Database.Close()
+	s.sqliteDb.Close()
 }
 
 func OpenDatabase(db_path string) (*sql.DB, error) {
 	return sql.Open("sqlite3", db_path)
 }
 
-func NewServer(db_path string) (*server, error) {
+func NewServer(db_path string, datastore string) (*server, error) {
 	srv := new(server)
 
 	db, err := OpenDatabase(db_path)
 	if err != nil {
 		return nil, err
 	}
-	srv.Database = db
+	srv.sqliteDb = db
+
+	var opt badger.Options
+	if datastore == "" {
+		opt = badger.DefaultOptions("").WithInMemory(true)
+	} else {
+		opt = badger.DefaultOptions(datastore)
+	}
+
+	srv.data, err = badger.Open(opt)
+	if err != nil {
+		return nil, err
+	}
 
 	return srv, nil
+}
+
+func (s *server) Shutdown() {
+	s.sqliteDb.Close()
+	s.data.Close()
 }
 
 func main() {
@@ -372,7 +506,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	srv, err := NewServer(*flibustaDb)
+	srv, err := NewServer(*flibustaDb, *datastore)
 	if err != nil {
 		log.Fatalf("Couldn't create server: %v", err)
 		os.Exit(2)
@@ -395,7 +529,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			srv.Database = db
+			srv.sqliteDb = db
 			log.Printf("Database re-opened.")
 		}
 	}()

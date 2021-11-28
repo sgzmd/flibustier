@@ -22,6 +22,9 @@ type FlibustierClient interface {
 	CheckUpdates(ctx context.Context, in *UpdateCheckRequest, opts ...grpc.CallOption) (*UpdateCheckResponse, error)
 	GetSeriesBooks(ctx context.Context, in *SequenceBooksRequest, opts ...grpc.CallOption) (*EntityBookResponse, error)
 	GetAuthorBooks(ctx context.Context, in *AuthorBooksRequest, opts ...grpc.CallOption) (*EntityBookResponse, error)
+	TrackEntry(ctx context.Context, in *TrackedEntry, opts ...grpc.CallOption) (*TrackEntryResponse, error)
+	ListTrackedEntries(ctx context.Context, in *ListTrackedEntriesRequest, opts ...grpc.CallOption) (*ListTrackedEntriesResponse, error)
+	UntrackEntry(ctx context.Context, in *TrackedEntryKey, opts ...grpc.CallOption) (*UntrackEntryResponse, error)
 }
 
 type flibustierClient struct {
@@ -68,6 +71,33 @@ func (c *flibustierClient) GetAuthorBooks(ctx context.Context, in *AuthorBooksRe
 	return out, nil
 }
 
+func (c *flibustierClient) TrackEntry(ctx context.Context, in *TrackedEntry, opts ...grpc.CallOption) (*TrackEntryResponse, error) {
+	out := new(TrackEntryResponse)
+	err := c.cc.Invoke(ctx, "/flibustier.Flibustier/TrackEntry", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *flibustierClient) ListTrackedEntries(ctx context.Context, in *ListTrackedEntriesRequest, opts ...grpc.CallOption) (*ListTrackedEntriesResponse, error) {
+	out := new(ListTrackedEntriesResponse)
+	err := c.cc.Invoke(ctx, "/flibustier.Flibustier/ListTrackedEntries", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *flibustierClient) UntrackEntry(ctx context.Context, in *TrackedEntryKey, opts ...grpc.CallOption) (*UntrackEntryResponse, error) {
+	out := new(UntrackEntryResponse)
+	err := c.cc.Invoke(ctx, "/flibustier.Flibustier/UntrackEntry", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FlibustierServer is the server API for Flibustier service.
 // All implementations must embed UnimplementedFlibustierServer
 // for forward compatibility
@@ -76,6 +106,9 @@ type FlibustierServer interface {
 	CheckUpdates(context.Context, *UpdateCheckRequest) (*UpdateCheckResponse, error)
 	GetSeriesBooks(context.Context, *SequenceBooksRequest) (*EntityBookResponse, error)
 	GetAuthorBooks(context.Context, *AuthorBooksRequest) (*EntityBookResponse, error)
+	TrackEntry(context.Context, *TrackedEntry) (*TrackEntryResponse, error)
+	ListTrackedEntries(context.Context, *ListTrackedEntriesRequest) (*ListTrackedEntriesResponse, error)
+	UntrackEntry(context.Context, *TrackedEntryKey) (*UntrackEntryResponse, error)
 	mustEmbedUnimplementedFlibustierServer()
 }
 
@@ -94,6 +127,15 @@ func (UnimplementedFlibustierServer) GetSeriesBooks(context.Context, *SequenceBo
 }
 func (UnimplementedFlibustierServer) GetAuthorBooks(context.Context, *AuthorBooksRequest) (*EntityBookResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAuthorBooks not implemented")
+}
+func (UnimplementedFlibustierServer) TrackEntry(context.Context, *TrackedEntry) (*TrackEntryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TrackEntry not implemented")
+}
+func (UnimplementedFlibustierServer) ListTrackedEntries(context.Context, *ListTrackedEntriesRequest) (*ListTrackedEntriesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTrackedEntries not implemented")
+}
+func (UnimplementedFlibustierServer) UntrackEntry(context.Context, *TrackedEntryKey) (*UntrackEntryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UntrackEntry not implemented")
 }
 func (UnimplementedFlibustierServer) mustEmbedUnimplementedFlibustierServer() {}
 
@@ -180,6 +222,60 @@ func _Flibustier_GetAuthorBooks_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Flibustier_TrackEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TrackedEntry)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FlibustierServer).TrackEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flibustier.Flibustier/TrackEntry",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FlibustierServer).TrackEntry(ctx, req.(*TrackedEntry))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Flibustier_ListTrackedEntries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTrackedEntriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FlibustierServer).ListTrackedEntries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flibustier.Flibustier/ListTrackedEntries",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FlibustierServer).ListTrackedEntries(ctx, req.(*ListTrackedEntriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Flibustier_UntrackEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TrackedEntryKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FlibustierServer).UntrackEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flibustier.Flibustier/UntrackEntry",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FlibustierServer).UntrackEntry(ctx, req.(*TrackedEntryKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Flibustier_ServiceDesc is the grpc.ServiceDesc for Flibustier service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -202,6 +298,18 @@ var Flibustier_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAuthorBooks",
 			Handler:    _Flibustier_GetAuthorBooks_Handler,
+		},
+		{
+			MethodName: "TrackEntry",
+			Handler:    _Flibustier_TrackEntry_Handler,
+		},
+		{
+			MethodName: "ListTrackedEntries",
+			Handler:    _Flibustier_ListTrackedEntries_Handler,
+		},
+		{
+			MethodName: "UntrackEntry",
+			Handler:    _Flibustier_UntrackEntry_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
