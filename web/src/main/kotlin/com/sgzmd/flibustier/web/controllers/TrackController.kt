@@ -2,6 +2,7 @@ package com.sgzmd.flibustier.web.controllers
 
 import com.sgzmd.flibustier.proto.AuthorBooksRequest
 import com.sgzmd.flibustier.proto.EntityBookResponse
+import com.sgzmd.flibustier.proto.EntityName
 import com.sgzmd.flibustier.proto.SequenceBooksRequest
 import com.sgzmd.flibustier.web.db.ConnectionProvider
 import com.sgzmd.flibustier.web.db.FoundEntryType
@@ -67,13 +68,26 @@ class TrackController(val repo: TrackedEntryRepository, val connectionProvider: 
                 logger.warn("Entry type $entryType is not supported yet")
             }
         }
-        
+
         protoBookList = resp?.bookList
         val bookList = protoBookList?.map { Book(it.bookName, it.bookId) }
-        val trackedEntry = TrackedEntry(entryType, entryName, entryId, bookList!!.size, user)
+        val trackedEntry = TrackedEntry(entryType, resp?.entityName?.readableString(), entryId, bookList!!.size, user)
         trackedEntry.books = bookList!!
         repo.save(trackedEntry)
 
         return RedirectView("/")
+    }
+
+    fun EntityName.readableString() : String {
+        return if (this.hasAuthorName()) {
+            val authorName = this.authorName
+            if (authorName.middleName.isNotEmpty()) {
+                String.format("%s %s %s", authorName.firstName, authorName.middleName, authorName.lastName)
+            } else {
+                String.format("%s %s", authorName.firstName, authorName.lastName)
+            }
+        } else {
+            this.sequenceName
+        }
     }
 }
