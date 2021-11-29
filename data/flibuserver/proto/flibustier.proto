@@ -74,3 +74,12 @@ message UpdateCheckRequest {
 message UpdateCheckResponse {
   repeated UpdateRequired update_required = 1;
 }
+
+message TrackedEntryKey {
+  EntryType entity_type = 1;
+  int32 entity_id = 2;
+}
+
+message TrackedEntryDb {
+  TrackedEntry entry = 1;
+}
