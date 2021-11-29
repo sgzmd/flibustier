@@ -26,7 +26,7 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 
 	server := grpc.NewServer()
 
-	srv, err := NewServer(FLIBUSTA_DB)
+	srv, err := NewServer(FLIBUSTA_DB, "" /* in memory datastore */)
 	if err != nil {
 		panic(err)
 	}
@@ -171,6 +171,49 @@ func TestServer_GetAuthorBooks(t *testing.T) {
 	}
 }
 
+func TestServer_TrackEntry(t *testing.T) {
+	req := &pb.TrackedEntry{EntryType: pb.EntryType_AUTHOR, EntryName: "Entry Name Test", EntryId: 123, NumEntries: 10, UserId: "1", Book: []*pb.Book{}}
+	resp, err := client.TrackEntry(context.Background(), req)
+	if err != nil {
+		t.Fatalf("Failed: %+v", err)
+	} else {
+		assert.Equal(t, pb.TrackEntryResult_TRACK_OK, resp.Result)
+	}
+
+	// Second time should fail
+	resp2, err := client.TrackEntry(context.Background(), req)
+	if err != nil {
+		t.Fatalf("Failed: %+v", err)
+	} else {
+		assert.Equal(t, pb.TrackEntryResult_TRACK_ALREADY_TRACKED, resp2.Result)
+	}
+}
+
+func TestServer_ListTrackedEntries(t *testing.T) {
+	const MAX_IDS = 10
+	ids := make([]int, MAX_IDS)
+	for i := 1; i < MAX_IDS; i++ {
+		_, _ = client.TrackEntry(context.Background(),
+			&pb.TrackedEntry{EntryType: pb.EntryType_AUTHOR,
+				EntryName:  "Entry Name Test",
+				EntryId:    int32(i),
+				NumEntries: 10,
+				UserId:     "1",
+				Book:       []*pb.Book{}})
+		ids[i] = i
+	}
+
+	resp, err := client.ListTrackedEntries(context.Background(), &pb.ListTrackedEntriesRequest{})
+	assert.Nil(t, err)
+
+	receivedIds := make([]int, MAX_IDS)
+	for i, entry := range resp.Entry {
+		receivedIds[i] = int(entry.EntryId)
+	}
+
+	assert.ElementsMatch(t, ids, receivedIds)
+}
+
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 	// Creating a client
@@ -183,5 +226,6 @@ func TestMain(m *testing.M) {
 
 	ret := m.Run()
 
+	conn.Close()
 	os.Exit(ret)
 }
