@@ -5,7 +5,10 @@ import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.db.entity.Book
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
+import com.sgzmd.flibustier.web.test.FlibuserverInitializer
+import org.junit.AfterClass
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,6 +33,22 @@ internal class TrackUntrackControllerTest {
 
   @Autowired
   lateinit var repo: TrackedEntryRepository
+
+  companion object {
+    var flibuserverInitializer = FlibuserverInitializer("../testutils/flibusta-test.db")
+
+    @BeforeClass
+    @JvmStatic
+    fun setUpClass() {
+      flibuserverInitializer.initializeFlibuserver()
+    }
+
+    @AfterClass
+    @JvmStatic
+    fun teardownClass() {
+      flibuserverInitializer.rampDownServer()
+    }
+  }
 
   @Before
   fun setUp() {

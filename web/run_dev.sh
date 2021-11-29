@@ -30,5 +30,7 @@ startup_options=(
 -Dspring.security.oauth2.client.registration.google.client-secret=$GOOGLE_CLIENT_SECRET
 )
 
-mvn package
-java -jar "${startup_options[*]}" -jar target/flibustier-web-0.0.1-SNAPSHOT.jar
+# mvn package
+CMD="java ${startup_options[*]} -jar target/flibustier-web-0.0.1-SNAPSHOT.jar"
+echo $CMD
+$CMD

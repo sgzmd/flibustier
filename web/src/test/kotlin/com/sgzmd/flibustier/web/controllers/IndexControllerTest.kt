@@ -2,8 +2,11 @@ package com.sgzmd.flibustier.web.controllers
 
 import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.GlobalSearch
+import com.sgzmd.flibustier.web.test.FlibuserverInitializer
 import org.hamcrest.Matchers
+import org.junit.AfterClass
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,6 +29,21 @@ class IndexControllerTest {
   @Autowired lateinit var wac: WebApplicationContext
 
   lateinit var mockMvc: MockMvc
+
+  companion object {
+    var flibuserverInitializer = FlibuserverInitializer("../testutils/flibusta-test.db")
+
+    @BeforeClass @JvmStatic
+    fun setUpClass() {
+      flibuserverInitializer.initializeFlibuserver()
+    }
+
+    @AfterClass @JvmStatic
+    fun teardownClass() {
+      flibuserverInitializer.rampDownServer()
+    }
+  }
+
 
   @Before
   fun setUp() {

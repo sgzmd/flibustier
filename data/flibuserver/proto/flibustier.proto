@@ -19,6 +19,8 @@ package flibustier;
 service Flibustier {
   rpc GlobalSearch (SearchRequest) returns (SearchResponse) {}
   rpc CheckUpdates (UpdateCheckRequest) returns (UpdateCheckResponse) {}
+  rpc GetSeriesBooks (SequenceBooksRequest) returns (EntityBookResponse) {}
+  rpc GetAuthorBooks (AuthorBooksRequest) returns (EntityBookResponse) {}
 }
 
 enum EntryType {
@@ -73,6 +75,33 @@ message UpdateCheckRequest {
 
 message UpdateCheckResponse {
   repeated UpdateRequired update_required = 1;
+}
+
+message SequenceBooksRequest {
+  int32 sequence_id = 1;
+}
+
+message AuthorBooksRequest {
+  int32 author_id = 1;
+}
+
+message EntityBookResponse {
+  int32 entity_id = 1;
+  repeated Book book = 2;
+  EntityName entity_name = 3;
+}
+
+message AuthorName {
+  string first_name = 1;
+  string middle_name = 2;
+  string last_name = 3;
+}
+
+message EntityName {
+  oneof name {
+    AuthorName author_name = 1;
+    string sequence_name = 2;
+  }
 }
 
 message TrackedEntryKey {

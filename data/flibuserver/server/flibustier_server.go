@@ -8,6 +8,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
+	"time"
 
 	pb "flibustaimporter/flibuserver/proto"
 
@@ -21,15 +23,20 @@ import (
 type server struct {
 	pb.UnimplementedFlibustierServer
 	Database *sql.DB
+	Lock     sync.RWMutex
 }
 
 var (
-	port        = flag.Int("port", 9000, "RPC server port")
-	flibusta_db = flag.String("flibusta_db", "", "Path to Flibusta SQLite3 database")
+	port       = flag.Int("port", 9000, "RPC server port")
+	flibustaDb = flag.String("flibusta_db", "", "Path to Flibusta SQLite3 database")
 )
 
 func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
 	log.Printf("Searching for author: %s", req)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
+
 	sql := CreateAuthorSearchQuery(req.SearchTerm)
 
 	rows, err := s.Database.Query(sql)
@@ -65,6 +72,10 @@ func (s *server) SearchAuthors(req *pb.SearchRequest) ([]*pb.FoundEntry, error) 
 
 func (s *server) SearchSeries(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
 	log.Printf("Searching for series: %s", req)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
+
 	sql := CreateSequenceSearchQuery(req.SearchTerm)
 	rows, err := s.Database.Query(sql)
 
@@ -101,6 +112,9 @@ func (s *server) SearchSeries(req *pb.SearchRequest) ([]*pb.FoundEntry, error) {
 func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.SearchResponse, error) {
 	log.Printf("Received: %v", in.GetSearchTerm())
 
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
+
 	var entries []*pb.FoundEntry = make([]*pb.FoundEntry, 0, 10)
 
 	// If there's no filter for series
@@ -126,12 +140,15 @@ func (s *server) GlobalSearch(ctx context.Context, in *pb.SearchRequest) (*pb.Se
 	}, nil
 }
 
-// Searches for updates in the collection of tracked entries.
+// CheckUpdates Searches for updates in the collection of tracked entries.
 // Implementation is very straightforward and not very performant
 // but it's possible that it's good enough.
 // See: ../proto/flibustier.proto for proto definitions.
 func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*pb.UpdateCheckResponse, error) {
 	log.Printf("Received: %v", in)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
 
 	response := make([]*pb.UpdateRequired, 0)
 
@@ -175,40 +192,40 @@ func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*
 					entry.EntryId)
 		}
 
-		new_books := make([]*pb.Book, 0)
+		newBooks := make([]*pb.Book, 0)
 
 		for rs.Next() {
 			var bookId int32
 			var title string
 			rs.Scan(&bookId, &title)
 
-			new_books = append(new_books, &pb.Book{BookName: title, BookId: bookId})
+			newBooks = append(newBooks, &pb.Book{BookName: title, BookId: bookId})
 		}
 
-		if entry.NumEntries != int32(len(new_books)) {
+		if entry.NumEntries != int32(len(newBooks)) {
 			// If it is equal, no updates required
 
 			// sort.SliceStable(entry.Book, CreateBookComparator(entry.Book))
 			// sort.SliceStable(new_books, CreateBookComparator(new_books))
-			old_book_map := make(map[int]*pb.Book)
+			oldBookMap := make(map[int]*pb.Book)
 			for _, b := range entry.Book {
-				old_book_map[int(b.BookId)] = b
+				oldBookMap[int(b.BookId)] = b
 			}
 
-			newly_added_books := make([]*pb.Book, 0, len(new_books)-int(entry.NumEntries))
-			for _, b := range new_books {
-				_, exists := old_book_map[int(b.BookId)]
+			newlyAddedBooks := make([]*pb.Book, 0, len(newBooks)-int(entry.NumEntries))
+			for _, b := range newBooks {
+				_, exists := oldBookMap[int(b.BookId)]
 				if !exists {
 					// Well we found the missing book
-					newly_added_books = append(newly_added_books, b)
+					newlyAddedBooks = append(newlyAddedBooks, b)
 				}
 			}
 
-			if len(newly_added_books) > 0 {
+			if len(newlyAddedBooks) > 0 {
 				response = append(response, &pb.UpdateRequired{
 					TrackedEntry:  entry,
-					NewNumEntries: int32(len(new_books)),
-					NewBook:       newly_added_books,
+					NewNumEntries: int32(len(newBooks)),
+					NewBook:       newlyAddedBooks,
 				})
 			}
 		}
@@ -217,15 +234,128 @@ func (s *server) CheckUpdates(ctx context.Context, in *pb.UpdateCheckRequest) (*
 	return &pb.UpdateCheckResponse{UpdateRequired: response}, nil
 }
 
+func GetEntityBooks(sql *sql.Stmt, entityId int32) ([]*pb.Book, error) {
+	rs, err := sql.Query(entityId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	books := make([]*pb.Book, 0)
+	for rs.Next() {
+		var bookTitle string
+		var bookId int32
+
+		rs.Scan(&bookTitle, &bookId)
+		books = append(books, &pb.Book{BookId: bookId, BookName: bookTitle})
+	}
+
+	return books, nil
+}
+
+func (s *server) GetAuthorBooks(ctx context.Context, in *pb.AuthorBooksRequest) (*pb.EntityBookResponse, error) {
+	log.Printf("GetAuthorBooks: %+v", in)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
+
+	sql, err := s.Database.Prepare(`
+		select 
+		  lb.Title,
+		  lb.Bookid
+		from libbook lb, libavtor la, author_fts a
+		where la.BookId = lb.BookId 
+		and a.authorId = la.AvtorId
+		and lb.Deleted != '1'
+		and la.AvtorId = ?
+		group by la.BookId order by la.BookId;`)
+
+	if err != nil {
+		return nil, err
+	}
+	books, err := GetEntityBooks(sql, in.AuthorId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	sql, err = s.Database.Prepare(`
+		select an.FirstName, an.MiddleName, an.LastName 
+		from libavtorname an
+		where an.AvtorId = ?`)
+	if err != nil {
+		return nil, err
+	}
+	rs, err := sql.Query(in.AuthorId)
+	if err != nil {
+		return nil, err
+	}
+
+	if rs.Next() {
+		var firstName, middleName, lastName string
+		rs.Scan(&firstName, &middleName, &lastName)
+		name := &pb.EntityName{Name: &pb.EntityName_AuthorName{
+			AuthorName: &pb.AuthorName{
+				FirstName:  firstName,
+				MiddleName: middleName,
+				LastName:   lastName}}}
+
+		return &pb.EntityBookResponse{Book: books, EntityId: in.AuthorId, EntityName: name}, nil
+	}
+
+	return nil, fmt.Errorf("no author associated with id %d", in.AuthorId)
+}
+
+func (s *server) GetSeriesBooks(ctx context.Context, in *pb.SequenceBooksRequest) (*pb.EntityBookResponse, error) {
+	log.Printf("GetSeriesBooks: %+v", in)
+
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
+
+	sql, err := s.Database.Prepare(`
+		SELECT b.Title, b.BookId
+		FROM libseq ls, libseqname lsn , libbook b
+		WHERE ls.seqId = lsn.seqId and ls.seqId = ? and ls.BookId = b.BookId and b.Deleted != '1'
+				  group by b.BookId
+				  order by ls.SeqNumb;`)
+
+	if err != nil {
+		return nil, err
+	}
+	books, err := GetEntityBooks(sql, in.SequenceId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rs, err := s.Database.Query("select SeqName from libseqname where SeqId = ?", in.SequenceId)
+	if err != nil {
+		return nil, err
+	}
+	if rs.Next() {
+		var seqName string
+		rs.Scan(&seqName)
+		name := &pb.EntityName{Name: &pb.EntityName_SequenceName{SequenceName: seqName}}
+
+		return &pb.EntityBookResponse{Book: books, EntityId: in.SequenceId, EntityName: name}, nil
+	}
+
+	return nil, fmt.Errorf("no series associated with id %d", in.SequenceId)
+}
+
 func (s *server) Close() {
 	log.Println("Closing database connection.")
 	s.Database.Close()
 }
 
+func OpenDatabase(db_path string) (*sql.DB, error) {
+	return sql.Open("sqlite3", db_path)
+}
+
 func NewServer(db_path string) (*server, error) {
 	srv := new(server)
 
-	db, err := sql.Open("sqlite3", db_path)
+	db, err := OpenDatabase(db_path)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +372,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	srv, err := NewServer(*flibusta_db)
+	srv, err := NewServer(*flibustaDb)
 	if err != nil {
 		log.Fatalf("Couldn't create server: %v", err)
 		os.Exit(2)
@@ -252,6 +382,23 @@ func main() {
 	pb.RegisterFlibustierServer(s, srv)
 	reflection.Register(s)
 	log.Printf("server listening at %v", lis.Addr())
+
+	ticker := time.NewTicker(10 * time.Minute)
+	go func() {
+		for range ticker.C {
+			log.Printf("Re-opening database ...")
+			srv.Lock.Lock()
+			db, err := OpenDatabase(*flibustaDb)
+			srv.Lock.Unlock()
+			if err != nil {
+				log.Fatalf("Failed to open database: %s", err)
+				os.Exit(1)
+			}
+
+			srv.Database = db
+			log.Printf("Database re-opened.")
+		}
+	}()
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

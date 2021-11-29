@@ -1,6 +1,7 @@
 package com.sgzmd.flibustier.web.controllers
 
 import com.sgzmd.flibustier.web.db.ConnectionProvider
+import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.IGlobalSearch
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.security.AuthenticationFacade
@@ -33,6 +34,11 @@ class IndexController(
 
         val userId = authFacade.getUserId()
         val trackedEntries = trackedEntryRepo.findByUserId(userId)
+
+        val pairs = trackedEntries.groupBy { it.entryType }
+        model.addAttribute("authors", pairs[FoundEntryType.AUTHOR]?.sortedBy { it.entryName })
+        model.addAttribute("series", pairs[FoundEntryType.SERIES]?.sortedBy { it.entryName })
+
         model.addAttribute("tracked", trackedEntries)
 
         return "index"
