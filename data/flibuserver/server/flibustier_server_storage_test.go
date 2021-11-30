@@ -45,7 +45,15 @@ func (suite *FlibustierStorageSuite) TestServer_ListTrackedEntries() {
 		ids[i] = i
 	}
 
-	resp, err := suite.client.ListTrackedEntries(context.Background(), &pb.ListTrackedEntriesRequest{})
+	_, _ = suite.client.TrackEntry(context.Background(),
+		&pb.TrackedEntry{EntryType: pb.EntryType_AUTHOR,
+			EntryName:  "Entry Name Test",
+			EntryId:    int32(0),
+			NumEntries: 10,
+			UserId:     "anotheruser",
+			Book:       []*pb.Book{}})
+
+	resp, err := suite.client.ListTrackedEntries(context.Background(), &pb.ListTrackedEntriesRequest{UserId: "1"})
 	suite.Assert().Nil(err)
 
 	receivedIds := make([]int, MAX_IDS)
@@ -54,6 +62,24 @@ func (suite *FlibustierStorageSuite) TestServer_ListTrackedEntries() {
 	}
 
 	suite.Assert().ElementsMatch(ids, receivedIds)
+}
+
+func (suite *FlibustierStorageSuite) TestServer_Untrack() {
+	r, _ := suite.client.TrackEntry(context.Background(),
+		&pb.TrackedEntry{EntryType: pb.EntryType_AUTHOR,
+			EntryName:  "Entry Name Test",
+			EntryId:    int32(0),
+			NumEntries: 10,
+			UserId:     "user",
+			Book:       []*pb.Book{}})
+
+	r2, _ := suite.client.ListTrackedEntries(context.Background(), &pb.ListTrackedEntriesRequest{UserId: "user"})
+	suite.Assert().Len(r2.Entry, 1)
+
+	suite.client.UntrackEntry(context.Background(), r.Key)
+
+	r3, _ := suite.client.ListTrackedEntries(context.Background(), &pb.ListTrackedEntriesRequest{UserId: "user"})
+	suite.Assert().Empty(r3.Entry)
 }
 
 func (suite *FlibustierStorageSuite) BeforeTest(suiteName, testName string) {

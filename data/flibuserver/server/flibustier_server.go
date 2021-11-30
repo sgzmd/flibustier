@@ -389,7 +389,18 @@ func (s *server) ListTrackedEntries(ctx context.Context, req *pb.ListTrackedEntr
 
 		for it.Rewind(); it.Valid(); it.Next() {
 			marshalledValue := ""
-			err := it.Item().Value(func(val []byte) error {
+			key := &pb.TrackedEntryKey{}
+			err := proto.UnmarshalText(string(it.Item().Key()), key)
+			if err != nil {
+				return err
+			}
+
+			// This isn't really efficient, we should use prefix scan
+			if key.UserId != req.UserId {
+				continue
+			}
+
+			err = it.Item().Value(func(val []byte) error {
 				marshalledValue = string(val)
 				return nil
 			})
@@ -416,7 +427,14 @@ func (s *server) ListTrackedEntries(ctx context.Context, req *pb.ListTrackedEntr
 }
 
 func (s *server) UntrackEntry(ctx context.Context, req *pb.TrackedEntryKey) (*pb.UntrackEntryResponse, error) {
-	return nil, nil
+	err := s.data.Update(func(txn *badger.Txn) error {
+		return txn.Delete([]byte(proto.MarshalTextString(req)))
+	})
+	if err != nil {
+		return nil, err
+	} else {
+		return &pb.UntrackEntryResponse{Key: req, Result: pb.UntrackEntryResult_UNTRACK_OK}, nil
+	}
 }
 
 func (s *server) Close() {

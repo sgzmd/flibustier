@@ -125,7 +125,7 @@ message TrackEntryResponse {
 }
 
 message ListTrackedEntriesRequest {
-
+  string user_id = 1;
 }
 
 message ListTrackedEntriesResponse {
