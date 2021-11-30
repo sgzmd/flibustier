@@ -4,13 +4,11 @@ import (
 	"context"
 	pb "flibustaimporter/flibuserver/proto"
 	"log"
-	"net"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/test/bufconn"
 )
 
 const (
@@ -20,28 +18,6 @@ const (
 var (
 	client pb.FlibustierClient = nil
 )
-
-func dialer() func(context.Context, string) (net.Conn, error) {
-	listener := bufconn.Listen(1024 * 1024)
-
-	server := grpc.NewServer()
-
-	srv, err := NewServer(FLIBUSTA_DB, "" /* in memory datastore */)
-	if err != nil {
-		panic(err)
-	}
-	pb.RegisterFlibustierServer(server, srv)
-
-	go func() {
-		if err := server.Serve(listener); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	return func(context.Context, string) (net.Conn, error) {
-		return listener.Dial()
-	}
-}
 
 func TestSmokeTest(t *testing.T) {
 	const TERM = "метел"
@@ -171,53 +147,10 @@ func TestServer_GetAuthorBooks(t *testing.T) {
 	}
 }
 
-func TestServer_TrackEntry(t *testing.T) {
-	req := &pb.TrackedEntry{EntryType: pb.EntryType_AUTHOR, EntryName: "Entry Name Test", EntryId: 123, NumEntries: 10, UserId: "1", Book: []*pb.Book{}}
-	resp, err := client.TrackEntry(context.Background(), req)
-	if err != nil {
-		t.Fatalf("Failed: %+v", err)
-	} else {
-		assert.Equal(t, pb.TrackEntryResult_TRACK_OK, resp.Result)
-	}
-
-	// Second time should fail
-	resp2, err := client.TrackEntry(context.Background(), req)
-	if err != nil {
-		t.Fatalf("Failed: %+v", err)
-	} else {
-		assert.Equal(t, pb.TrackEntryResult_TRACK_ALREADY_TRACKED, resp2.Result)
-	}
-}
-
-func TestServer_ListTrackedEntries(t *testing.T) {
-	const MAX_IDS = 10
-	ids := make([]int, MAX_IDS)
-	for i := 1; i < MAX_IDS; i++ {
-		_, _ = client.TrackEntry(context.Background(),
-			&pb.TrackedEntry{EntryType: pb.EntryType_AUTHOR,
-				EntryName:  "Entry Name Test",
-				EntryId:    int32(i),
-				NumEntries: 10,
-				UserId:     "1",
-				Book:       []*pb.Book{}})
-		ids[i] = i
-	}
-
-	resp, err := client.ListTrackedEntries(context.Background(), &pb.ListTrackedEntriesRequest{})
-	assert.Nil(t, err)
-
-	receivedIds := make([]int, MAX_IDS)
-	for i, entry := range resp.Entry {
-		receivedIds[i] = int(entry.EntryId)
-	}
-
-	assert.ElementsMatch(t, ids, receivedIds)
-}
-
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 	// Creating a client
-	conn, err := grpc.DialContext(ctx, "", grpc.WithInsecure(), grpc.WithContextDialer(dialer()))
+	conn, err := grpc.DialContext(ctx, "", grpc.WithInsecure(), grpc.WithContextDialer(dialer(FLIBUSTA_DB)))
 	if err != nil {
 		panic(err)
 	}
