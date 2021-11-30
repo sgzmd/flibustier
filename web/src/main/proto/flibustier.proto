@@ -21,6 +21,10 @@ service Flibustier {
   rpc CheckUpdates (UpdateCheckRequest) returns (UpdateCheckResponse) {}
   rpc GetSeriesBooks (SequenceBooksRequest) returns (EntityBookResponse) {}
   rpc GetAuthorBooks (AuthorBooksRequest) returns (EntityBookResponse) {}
+
+  rpc TrackEntry (TrackedEntry) returns (TrackEntryResponse) {}
+  rpc ListTrackedEntries (ListTrackedEntriesRequest) returns (ListTrackedEntriesResponse) {}
+  rpc UntrackEntry (TrackedEntryKey) returns (UntrackEntryResponse) {}
 }
 
 enum EntryType {
@@ -102,4 +106,37 @@ message EntityName {
     AuthorName author_name = 1;
     string sequence_name = 2;
   }
+}
+
+message TrackedEntryKey {
+  EntryType entity_type = 1;  
+  int32 entity_id = 2;  
+  string user_id = 3;
+}
+
+enum TrackEntryResult {
+  TRACK_OK = 0;
+  TRACK_ALREADY_TRACKED = 1;
+}
+
+message TrackEntryResponse {
+  TrackedEntryKey key = 1;
+  TrackEntryResult result = 2;
+}
+
+message ListTrackedEntriesRequest {
+
+}
+
+message ListTrackedEntriesResponse {
+  repeated TrackedEntry entry = 1;
+}
+
+enum UntrackEntryResult {
+  UNTRACK_OK = 0;
+  UNTRACK_NOT_TRACKED = 1;
+}
+message UntrackEntryResponse {
+  TrackedEntryKey key = 1;
+  UntrackEntryResult result = 2;
 }
