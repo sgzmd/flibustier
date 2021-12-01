@@ -349,12 +349,17 @@ func (s *server) GetSeriesBooks(ctx context.Context, in *pb.SequenceBooksRequest
 }
 
 func (s *server) TrackEntry(ctx context.Context, entry *pb.TrackedEntry) (*pb.TrackEntryResponse, error) {
+	log.Printf("TrackEntry: %+v", entry)
 	key := pb.TrackedEntryKey{EntityType: entry.EntryType, EntityId: entry.EntryId, UserId: entry.UserId}
 	alreadyTracked := false
 	err := s.data.View(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
 		defer it.Close()
-		prefix := []byte(proto.MarshalTextString(&key))
+		prefix, err := proto.Marshal(&key)
+		if err != nil {
+			return err
+		}
+
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			alreadyTracked = true
 			return nil
@@ -371,7 +376,17 @@ func (s *server) TrackEntry(ctx context.Context, entry *pb.TrackedEntry) (*pb.Tr
 	}
 
 	s.data.Update(func(txn *badger.Txn) error {
-		return txn.Set([]byte(proto.MarshalTextString(&key)), []byte(proto.MarshalTextString(entry)))
+		key, err := proto.Marshal(&key)
+		if err != nil {
+			return err
+		}
+
+		value, err := proto.Marshal(entry)
+		if err != nil {
+			return err
+		}
+
+		return txn.Set(key, value)
 	})
 
 	if err != nil {
@@ -382,15 +397,17 @@ func (s *server) TrackEntry(ctx context.Context, entry *pb.TrackedEntry) (*pb.Tr
 }
 
 func (s *server) ListTrackedEntries(ctx context.Context, req *pb.ListTrackedEntriesRequest) (*pb.ListTrackedEntriesResponse, error) {
+	log.Printf("ListTrackedEntries: %+v", req)
 	entries := make([]*pb.TrackedEntry, 0)
 	err := s.data.View(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
 		defer it.Close()
 
 		for it.Rewind(); it.Valid(); it.Next() {
-			marshalledValue := ""
+			marshalledValue := []byte{}
 			key := &pb.TrackedEntryKey{}
-			err := proto.UnmarshalText(string(it.Item().Key()), key)
+
+			err := proto.Unmarshal(it.Item().Key(), key)
 			if err != nil {
 				return err
 			}
@@ -401,7 +418,7 @@ func (s *server) ListTrackedEntries(ctx context.Context, req *pb.ListTrackedEntr
 			}
 
 			err = it.Item().Value(func(val []byte) error {
-				marshalledValue = string(val)
+				marshalledValue = val
 				return nil
 			})
 			if err != nil {
@@ -409,7 +426,7 @@ func (s *server) ListTrackedEntries(ctx context.Context, req *pb.ListTrackedEntr
 			}
 
 			trackedEntry := pb.TrackedEntry{}
-			err = proto.UnmarshalText(marshalledValue, &trackedEntry)
+			err = proto.Unmarshal(marshalledValue, &trackedEntry)
 			if err != nil {
 				return err
 			}
@@ -427,8 +444,14 @@ func (s *server) ListTrackedEntries(ctx context.Context, req *pb.ListTrackedEntr
 }
 
 func (s *server) UntrackEntry(ctx context.Context, req *pb.TrackedEntryKey) (*pb.UntrackEntryResponse, error) {
+	log.Printf("UntrackEntry: %+v", req)
 	err := s.data.Update(func(txn *badger.Txn) error {
-		return txn.Delete([]byte(proto.MarshalTextString(req)))
+		key, err := proto.Marshal(req)
+		if err != nil {
+			return nil
+		}
+
+		return txn.Delete(key)
 	})
 	if err != nil {
 		return nil, err
