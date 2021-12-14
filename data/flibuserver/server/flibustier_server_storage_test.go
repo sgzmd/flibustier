@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	pb "flibustaimporter/flibuserver/proto"
 	"testing"
+
+	pb "flibustier_proto"
 
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"

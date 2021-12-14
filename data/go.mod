@@ -2,6 +2,8 @@ module flibustaimporter
 
 go 1.17
 
+replace flibustier_proto => ../proto
+
 require (
 	github.com/anaskhan96/soup v1.2.4
 	github.com/dustin/go-humanize v1.0.0
@@ -33,4 +35,5 @@ require (
 	google.golang.org/grpc v1.42.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	flibustier_proto v0.0.0-00010101000000-000000000000 // indirect
 )

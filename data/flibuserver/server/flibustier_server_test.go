@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	pb "flibustaimporter/flibuserver/proto"
 	"log"
 	"os"
 	"testing"
+
+	pb "flibustier_proto"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	pb "flibustaimporter/flibuserver/proto"
+	pb "flibustier_proto"
 	"log"
 	"net"
 

@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	pb "flibustaimporter/flibuserver/proto"
+	pb "flibustier_proto"
 
 	badger "github.com/dgraph-io/badger/v3"
 	"github.com/golang/protobuf/proto"
