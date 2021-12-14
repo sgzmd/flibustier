@@ -20,5 +20,13 @@ class EntryTypeConverter {
                 else -> FoundEntryType.SERIES
             }
         }
+
+        fun toProto(dbEntryType: FoundEntryType) :EntryType {
+            return when (dbEntryType) {
+                FoundEntryType.AUTHOR -> EntryType.AUTHOR
+                FoundEntryType.SERIES -> EntryType.SERIES
+                FoundEntryType.BOOK -> EntryType.BOOK
+            }
+        }
     }
 }

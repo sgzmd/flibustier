@@ -44,6 +44,7 @@ class ConnectionProvider(
         logger.info("Force closing connection")
         _connection?.close()
         _connection = null
+        _flibustierStub = null
     }
 
     private var _flibustierStub: FlibustierGrpc.FlibustierBlockingStub? = null

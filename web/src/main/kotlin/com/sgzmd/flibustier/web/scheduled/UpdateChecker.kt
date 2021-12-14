@@ -1,6 +1,8 @@
 package com.sgzmd.flibustier.web.scheduled
 
+import com.sgzmd.flibustier.proto.ListTrackedEntriesRequest
 import com.sgzmd.flibustier.web.db.ConnectionProvider
+import com.sgzmd.flibustier.web.db.EntryTypeConverter
 import com.sgzmd.flibustier.web.db.IEntryUpdateStatusProvider
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.db.entity.Book
@@ -16,10 +18,9 @@ import java.time.ZoneId
 
 @Component
 class UpdateChecker(
-    @Autowired val trackedEntryRepository: TrackedEntryRepository,
     @Autowired val entryUpdateStatusProvider: IEntryUpdateStatusProvider,
     @Autowired val updateNotifier: UserNotifier,
-    @Autowired @Value("\${flibusta.dburl}") val dbUrl: String) {
+    @Autowired val connectionProvider: ConnectionProvider) {
 
   val logger = LoggerFactory.getLogger(UpdateChecker::class.java)
   val auditLog = LoggerFactory.getLogger("audit")
@@ -28,7 +29,17 @@ class UpdateChecker(
     logger.info("Starting update checker ...")
 
     auditLog.info("Starting update checker")
-    val trackedEntries = trackedEntryRepository.findAll().toList()
+
+    val trackedEntries = connectionProvider.flibustierServer
+      ?.listTrackedEntries(ListTrackedEntriesRequest.newBuilder().build())
+      ?.entryList
+      ?.map {
+        TrackedEntry(EntryTypeConverter.fromProto(it.entryType),
+          it.entryName,
+          it.entryId,
+          it.bookCount,
+          it.userId)
+      }!!
 
     auditLog.info("There are ${trackedEntries.size} in tracked entries")
     val requiredUpdates = entryUpdateStatusProvider.checkForUpdates(trackedEntries)

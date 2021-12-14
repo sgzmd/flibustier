@@ -1,5 +1,7 @@
 package com.sgzmd.flibustier.web.scheduled
 
+import com.google.common.truth.Truth
+import com.sgzmd.flibustier.proto.TrackEntryResult
 import com.sgzmd.flibustier.web.db.ConnectionProvider
 import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.IEntryUpdateStatusProvider
@@ -7,9 +9,10 @@ import com.sgzmd.flibustier.web.db.IEntryUpdateStatusProvider.UpdateRequired
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.db.entity.Book
 import com.sgzmd.flibustier.web.db.entity.TrackedEntry
+import com.sgzmd.flibustier.web.proto.toProtoEntry
+import com.sgzmd.flibustier.web.test.FlibuserverInitializer
+import org.junit.*
 import kotlin.test.assertEquals
-import org.junit.Before
-import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
@@ -42,25 +45,42 @@ class TestConfig {
 @ActiveProfiles("test")
 internal class UpdateCheckerTest {
   @Autowired
-  lateinit var repo: TrackedEntryRepository
-
-  @Autowired
-  @Value("\${flibusta.dburl}")
-  lateinit var dbUrl: String
+  lateinit var connectionProvider: ConnectionProvider
 
   lateinit var entryUpdateProvider: IEntryUpdateStatusProvider
 
+  companion object {
+    var flibuserverInitializer = FlibuserverInitializer("../testutils/flibusta-test.db")
+  }
+
   @Before
   fun setUp() {
+    flibuserverInitializer.initializeFlibuserver()
+
     testUserNotifier = Mockito.mock(UserNotifier::class.java)
     entryUpdateProvider = Mockito.mock(IEntryUpdateStatusProvider::class.java)
-    repo.deleteAll()
+
+    connectionProvider?.reload()
+
+  }
+
+  @After
+  fun teardown() {
+    flibuserverInitializer.rampDownServer()
+  }
+
+
+  fun save(entry: TrackedEntry) {
+    val protoEntry = entry.toProtoEntry()
+    val result = connectionProvider?.flibustierServer?.trackEntry(protoEntry)
+
+    Truth.assertThat(result?.result).isEqualTo(TrackEntryResult.TRACK_OK)
   }
 
   @Test
   fun checkUpdates_Series() {
     val entry = TrackedEntry(FoundEntryType.SERIES, "Test Series", 1, 2, "user_series")
-    repo.save(entry)
+    save(entry)
 
     val newBooks = listOf(Book("TestBook", 1))
     whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
@@ -74,8 +94,7 @@ internal class UpdateCheckerTest {
         )
       )
 
-    val updateChecker =
-      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl)
+    val updateChecker = UpdateChecker(entryUpdateProvider, testUserNotifier, connectionProvider)
     updateChecker.checkUpdates()
 
     val captor = ArgumentCaptor.forClass(Update::class.java)
@@ -87,7 +106,7 @@ internal class UpdateCheckerTest {
   fun checkUpdates_Author() {
     val entry = TrackedEntry(FoundEntryType.AUTHOR, "Test Author", 1, 2, "user_author")
     entry.books = listOf(Book("Original Book", 0))
-    repo.save(entry)
+    save(entry)
 
     val newBookList = listOf(Book("TestBook", 1))
     whenever(entryUpdateProvider.checkForUpdates(Mockito.anyList()))
@@ -102,7 +121,7 @@ internal class UpdateCheckerTest {
       )
 
     val updateChecker =
-      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl)
+      UpdateChecker(entryUpdateProvider, testUserNotifier, connectionProvider)
     updateChecker.checkUpdates()
 
     val captor = ArgumentCaptor.forClass(Update::class.java)
@@ -127,7 +146,7 @@ internal class UpdateCheckerTest {
   @Test
   fun checkUpdates_Author_MultiBooks() {
     val entry = TrackedEntry(FoundEntryType.AUTHOR, "Test Author", 1, 2, "user_author_mb")
-    repo.save(entry)
+    save(entry)
 
     val newBooksList = listOf(
       Book("TestBook", 1),
@@ -146,7 +165,7 @@ internal class UpdateCheckerTest {
       )
 
     val updateChecker =
-      UpdateChecker(repo, entryUpdateProvider, testUserNotifier, dbUrl)
+      UpdateChecker(entryUpdateProvider, testUserNotifier, connectionProvider)
     updateChecker.checkUpdates()
 
     val captor = ArgumentCaptor.forClass(Update::class.java)
