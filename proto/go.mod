@@ -1,4 +1,4 @@
-module sigizmund.com/flibustier/proto
+module github.com/sgzmd/flibustier/proto
 
 go 1.17
 
