@@ -122,6 +122,8 @@ num_books=`sqlite3 flibusta_new.db "select count(1) from libbook"`
 
 if [ $num_books -le 500000 ]; then 
   send_update $telegram_key $telegram_chat_id "Too few books ($num_books), abort, abort!"
+  rm lib*.sql
+  rm *.gz
 else
   send_update $telegram_key $telegram_chat_id "New data dump looks ($num_books books) legitimate, creating $flibusta_db_path"
   mv flibusta_new.db $flibusta_db_path
