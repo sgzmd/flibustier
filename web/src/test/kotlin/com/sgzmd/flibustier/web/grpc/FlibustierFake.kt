@@ -2,11 +2,17 @@ package com.sgzmd.flibustier.web.grpc
 
 import com.sgzmd.flibustier.proto.*
 import io.grpc.stub.StreamObserver
+import net.devh.boot.grpc.server.service.GrpcService
 import org.slf4j.LoggerFactory
 
+@GrpcService
 class FlibustierFake : FlibustierGrpc.FlibustierImplBase() {
 
     private val logger = LoggerFactory.getLogger(FlibustierFake::class.java)
+
+    init {
+        logger.info("Initializing Flibustier Fake")
+    }
 
     override fun listTrackedEntries(
         request: ListTrackedEntriesRequest?,

@@ -42,4 +42,5 @@ grpc:
   client:
     in-process:
       address: "in-process:test"
-      negotiationType: "PLAINTEXT"
+    GLOBAL:
+      negotiation-type: plaintext
