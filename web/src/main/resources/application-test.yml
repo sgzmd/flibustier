@@ -34,3 +34,12 @@ flibusta:
     host: "localhost"
     port: 9899
 
+
+grpc:
+  server:
+    in-process-name: test
+    port: -1
+  client:
+    in-process:
+      address: "in-process:test"
+      negotiationType: "PLAINTEXT"

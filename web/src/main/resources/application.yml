@@ -39,3 +39,8 @@ smtp:
   port: 587
   username: ""
   password: ""
+
+grpc:
+  client:
+    flibustier:
+      address: "static://localhost:9090"

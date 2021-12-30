@@ -12,6 +12,7 @@ import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig
 import org.springframework.test.context.junit4.SpringRunner
@@ -24,26 +25,12 @@ import org.springframework.web.context.WebApplicationContext
 @RunWith(SpringRunner::class)
 @ActiveProfiles("test")
 @SpringJUnitWebConfig
-@SpringBootTest
+@SpringBootTest(properties = ["grpc.server.inProcessName=test"])
+@DirtiesContext
 class IndexControllerTest {
   @Autowired lateinit var wac: WebApplicationContext
 
   lateinit var mockMvc: MockMvc
-
-  companion object {
-    var flibuserverInitializer = FlibuserverInitializer("../testutils/flibusta-test.db")
-
-    @BeforeClass @JvmStatic
-    fun setUpClass() {
-      flibuserverInitializer.initializeFlibuserver()
-    }
-
-    @AfterClass @JvmStatic
-    fun teardownClass() {
-      flibuserverInitializer.rampDownServer()
-    }
-  }
-
 
   @Before
   fun setUp() {
@@ -80,6 +67,7 @@ class IndexControllerTest {
   }
 
   @Test
+  @DirtiesContext
   @WithMockUser("testuser")
   fun testShowsNumBooks() {
     mockMvc.get("/?search_term=Унес").andExpect {
@@ -90,6 +78,7 @@ class IndexControllerTest {
   }
 
   @Test
+  @DirtiesContext
   @WithMockUser("testuser")
   fun testIndexPage() {
     mockMvc.get("/").andExpect {

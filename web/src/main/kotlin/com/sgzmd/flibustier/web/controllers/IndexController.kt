@@ -1,10 +1,14 @@
 package com.sgzmd.flibustier.web.controllers
 
+import com.sgzmd.flibustier.proto.EntryType
+import com.sgzmd.flibustier.proto.FlibustierGrpc
+import com.sgzmd.flibustier.proto.ListTrackedEntriesRequest
 import com.sgzmd.flibustier.web.db.ConnectionProvider
 import com.sgzmd.flibustier.web.db.FoundEntryType
 import com.sgzmd.flibustier.web.db.IGlobalSearch
 import com.sgzmd.flibustier.web.db.TrackedEntryRepository
 import com.sgzmd.flibustier.web.security.AuthenticationFacade
+import net.devh.boot.grpc.client.inject.GrpcClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -17,6 +21,9 @@ class IndexController(
     @Autowired val connectionProvider: ConnectionProvider,
     @Autowired val trackedEntryRepo: TrackedEntryRepository,
     @Autowired val authFacade: AuthenticationFacade) {
+
+    @GrpcClient("flibustier")
+    private lateinit var flibustierBlockingStub: FlibustierGrpc.FlibustierBlockingStub
 
     @GetMapping("/")
     fun index(
@@ -33,11 +40,12 @@ class IndexController(
         }
 
         val userId = authFacade.getUserId()
-        val trackedEntries = trackedEntryRepo.findByUserId(userId)
+        val trackedEntries = flibustierBlockingStub.listTrackedEntries(ListTrackedEntriesRequest.newBuilder().setUserId(userId).build())
 
-        val pairs = trackedEntries.groupBy { it.entryType }
-        model.addAttribute("authors", pairs[FoundEntryType.AUTHOR]?.sortedBy { it.entryName })
-        model.addAttribute("series", pairs[FoundEntryType.SERIES]?.sortedBy { it.entryName })
+        val pairs = trackedEntries.entryList.groupBy { it.entryType }
+
+        model.addAttribute("authors", pairs[EntryType.AUTHOR]?.sortedBy { it.entryName })
+        model.addAttribute("series", pairs[EntryType.SERIES]?.sortedBy { it.entryName })
 
         model.addAttribute("tracked", trackedEntries)
 
