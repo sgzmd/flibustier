@@ -131,11 +131,11 @@
         </dependency>
 
         <!-- logging -->
-        <dependency>
+        <!-- <dependency>
             <groupId>org.logback-extensions</groupId>
             <artifactId>logback-ext-loggly</artifactId>
-            <version>0.1.2</version>
-        </dependency>
+            <version>0.1.5</version>
+        </dependency> -->
         <dependency>
             <groupId>com.google.truth</groupId>
             <artifactId>truth</artifactId>
